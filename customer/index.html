@@ -2,194 +2,210 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pilates マイページ — お客様用</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f8f3f1">
+<title>マイページ — Pilates</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#fbf1ed;--panel:#ffffff;--ink:#5a423c;--sub:#a98d84;--faint:#cbb4ac;--accent:#f47a68;--accent-d:#e05e4b;
-    --line:#f3e2db;--soft:#fdf3ef;--danger:#c0392b;--chip:#fce7e1;--gold:#eda58f;
-    --shadow:0 8px 24px rgba(200,120,100,.10);--radius:20px;
+    --bg:#f8f3f1;--paper:#ffffff;--ink:#4f3d3a;--ink2:#6e5955;--sub:#a08a85;--faint:#cdbcb7;
+    --line:#eee2de;--line2:#f5edea;--accent:#e8a3a0;--accent-h:#df9692;--accent-d:#bf716d;--accent-soft:#fbeeec;
+    --pill:#f4ebe8;--tile:#fcf7f6;--up:#6b9a83;--down:#bf716d;--danger:#c0574f;
+    --shadow:0 1px 2px rgba(120,80,70,.04),0 10px 28px -18px rgba(150,90,80,.24);
   }
-  .ico{display:block}
-  .logo{color:var(--accent)}
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic UI","Segoe UI",Meiryo,sans-serif;
-    background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
-  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
-  input,select,textarea{font-family:inherit;font-size:16px}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:'Zen Kaku Gothic New',-apple-system,'Hiragino Sans','Yu Gothic UI',sans-serif;background:var(--bg);color:var(--ink);
+    line-height:1.6;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  input,textarea{font:inherit;font-size:16px;color:var(--ink)}
+  input:focus,textarea:focus{outline:none;border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--accent-soft)}
   .hidden{display:none!important}
-  .cover{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-  .card{width:100%;max-width:400px;background:var(--panel);border-radius:24px;box-shadow:var(--shadow);padding:38px 30px;text-align:center}
-  .logo{font-size:34px}.brand{font-size:22px;font-weight:700;margin-top:6px}
-  .brand small{display:block;font-size:11px;color:var(--sub);font-weight:400;letter-spacing:2px;margin-top:2px}
-  .badge{display:inline-block;margin-top:10px;padding:3px 12px;border-radius:20px;background:var(--chip);color:var(--accent-d);font-size:12px;font-weight:700}
-  .role-tabs{display:flex;gap:8px;margin:24px 0 18px;background:var(--soft);padding:5px;border-radius:12px}
-  .role-tabs button{flex:1;padding:10px;border-radius:9px;font-weight:600;color:var(--sub)}
-  .role-tabs button.on{background:var(--panel);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.06)}
-  .field{text-align:left;margin-bottom:14px}.field label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px;font-weight:600}
-  .field input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
-  .field input:focus{outline:none;border-color:var(--accent);background:#fff}
-  .btn-primary{width:100%;padding:13px;background:var(--accent);color:#fff;border-radius:11px;font-weight:700;font-size:15px;margin-top:6px;transition:.15s}
-  .btn-primary:hover{background:var(--accent-d)}.btn-primary:disabled{opacity:.6;cursor:default}
-  .hint{font-size:12px;color:var(--sub);margin-top:16px}
-  .err{color:var(--danger);font-size:13px;margin-top:10px;min-height:18px}.ok{color:var(--accent-d);font-size:13px;margin-top:10px;min-height:18px}
-  /* shell */
-  #app{display:none}
-  .topbar{background:var(--panel);border-bottom:1px solid var(--line);padding:12px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20}
-  .topbar .logo{font-size:20px}.topbar .title{font-weight:700;font-size:15px}
-  .topbar .who{margin-left:auto;font-size:12px;color:var(--sub);text-align:right}.topbar .who b{color:var(--ink);display:block}
-  .logout{padding:7px 12px;border:1px solid var(--line);border-radius:9px;font-size:12px;font-weight:600;color:var(--sub)}
-  .logout:hover{border-color:var(--danger);color:var(--danger)}
-  .wrap{max-width:680px;margin:0 auto;padding:20px 16px 90px}
-  .greet{font-size:20px;font-weight:800;margin-bottom:2px}.greet-sub{color:var(--sub);font-size:13px;margin-bottom:20px}
-  .goal-box{background:var(--panel);border-left:4px solid var(--accent);padding:14px 16px;border-radius:14px;margin-bottom:20px;box-shadow:var(--shadow)}
-  .goal-box .l{font-size:11px;color:var(--sub);font-weight:700;margin-bottom:3px}.goal-box .t{font-size:15px;font-weight:600}
-  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
-  .stat{background:var(--panel);border-radius:var(--radius);padding:16px 14px;box-shadow:var(--shadow);text-align:center}
-  .stat .k{font-size:11px;color:var(--sub);font-weight:600;white-space:nowrap}.stat .v{font-size:24px;font-weight:800;margin-top:3px;white-space:nowrap}
-  .stat .v small{font-size:12px;color:var(--sub)}.stat .d{font-size:11px;font-weight:700;margin-top:2px}
-  .panel{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px 16px;margin-bottom:18px}
-  .panel h3{font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
-  .panel h3 .count{font-size:12px;color:var(--sub);font-weight:600;background:var(--chip);padding:2px 9px;border-radius:20px;margin-left:auto}
-  .metric-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-  .metric-pills button{padding:6px 12px;border-radius:20px;background:var(--chip);font-size:13px;font-weight:600;color:var(--sub)}
-  .metric-pills button.on{background:var(--accent);color:#fff}
-  .chart-wrap{width:100%;overflow-x:auto}canvas{display:block;max-width:100%}
-  .btn{padding:11px 16px;border-radius:10px;font-weight:700;font-size:14px;background:var(--accent);color:#fff;transition:.15s}
-  .btn:hover{background:var(--accent-d)}.btn.ghost{background:var(--chip);color:var(--ink)}.btn.sm{padding:7px 13px;font-size:13px}
-  .btn.block{width:100%}
-  table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);font-size:13px}
-  th{font-size:11px;color:var(--sub);font-weight:700}tr:last-child td{border-bottom:none}
-  .muted{color:var(--sub)}.right{text-align:right}.center{text-align:center}
-  .empty{text-align:center;color:var(--sub);padding:30px 10px;font-size:14px}.empty .big{display:flex;justify-content:center;margin-bottom:10px;opacity:.55}
-  .sess{padding:12px 0;border-bottom:1px solid var(--line)}.sess:last-child{border-bottom:none}
-  .sess .top{display:flex;justify-content:space-between;align-items:center}.sess .dt{font-size:12px;color:var(--sub)}
-  .sess .mn{font-weight:700;font-size:14px}.sess .nt{font-size:13px;color:var(--sub);margin-top:4px;background:var(--soft);padding:8px 11px;border-radius:9px}
-  .tabbar{position:fixed;bottom:0;left:0;right:0;max-width:680px;margin:0 auto;background:var(--panel);border-top:1px solid var(--line);display:flex;gap:6px;z-index:30;padding:10px 10px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(200,120,100,.07)}
-  .tabbar button{flex:1;padding:11px 0;font-size:13px;font-weight:800;color:var(--sub);border-radius:13px;transition:.15s}
-  .tabbar button.on{color:#fff;background:var(--accent)}
-  .modal-bg{position:fixed;inset:0;background:rgba(45,40,35,.45);display:flex;align-items:flex-end;justify-content:center;z-index:50;backdrop-filter:blur(2px)}
-  .modal{background:var(--panel);border-radius:20px 20px 0 0;width:100%;max-width:680px;max-height:92vh;overflow-y:auto}
-  @media(min-width:520px){.modal-bg{align-items:center}.modal{border-radius:20px}}
-  .modal-h{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
-  .modal-h h3{font-size:16px}.modal-h .x{font-size:22px;color:var(--sub);width:32px;height:32px;border-radius:8px}
-  .modal-b{padding:18px 20px}.modal-f{padding:14px 20px calc(20px + env(safe-area-inset-bottom));display:flex;gap:10px}
-  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.form-grid .full{grid-column:1/-1}
-  .fld label{display:block;font-size:12px;color:var(--sub);font-weight:600;margin-bottom:5px}
-  .fld input,.fld textarea{width:100%;padding:12px 13px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
-  .fld input:focus,.fld textarea:focus{outline:none;border-color:var(--accent);background:#fff}
-  .fld textarea{resize:vertical;min-height:64px}
-  .unit-in{position:relative}.unit-in .u{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--sub);font-size:13px}
-  .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(160%);background:var(--ink);color:#fff;padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600;z-index:80;transition:.3s;box-shadow:var(--shadow)}
-  .toast.show{transform:translateX(-50%) translateY(0)}
   .loading{min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:14px}
-  .notice{background:var(--soft);border-radius:12px;padding:16px;font-size:13px;color:var(--sub);text-align:center;line-height:1.7}
-  .notice b{color:var(--ink)}
-  /* 小さめのスマホ（iPhone SE / Android 360px など） */
-  @media(max-width:400px){
-    .topbar{padding:10px 12px;gap:8px}
-    .topbar .title{white-space:nowrap;font-size:14px}
-    .topbar .who{max-width:112px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}
-    .topbar .who span{display:none}
-    .logout{padding:6px 9px;font-size:11px;white-space:nowrap}
-    .wrap{padding:16px 12px 92px}
-    .greet{font-size:18px}
-    .cards{gap:8px}
-    .stat{padding:12px 6px}
-    .stat .k{font-size:10px}
-    .stat .v{font-size:19px}.stat .v small{font-size:10px}
-    .stat .d{font-size:10px}
-    .panel{padding:14px 12px}
-    .metric-pills button{padding:5px 10px;font-size:12px}
-  }
+
+  /* ログイン */
+  .cover{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .cover-card{width:100%;max-width:400px;background:var(--paper);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:40px 28px 32px}
+  .cover-card .logo{font-size:26px;font-weight:700;letter-spacing:.06em;text-align:center}
+  .cover-card .cap{font-size:10px;letter-spacing:.3em;color:var(--sub);text-align:center;margin:8px 0 24px}
+  .seg{display:flex;background:var(--tile);border:1px solid var(--line);border-radius:999px;padding:4px;gap:2px;margin-bottom:22px}
+  .seg button{flex:1;font-size:14px;color:var(--ink2);padding:9px 0;border-radius:999px;transition:background .15s,color .15s}
+  .seg button.on{background:var(--accent);color:#fff;font-weight:700}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12px;color:var(--sub);margin-bottom:6px;letter-spacing:.06em}
+  .field input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#fff}
+  .btn-block{width:100%;padding:13px;border-radius:999px;background:var(--accent);color:#fff;font-weight:700;font-size:15px;letter-spacing:.06em;transition:background .15s}
+  .btn-block:hover{background:var(--accent-h)}
+  .btn-block:disabled{opacity:.6;cursor:default}
+  .err{color:var(--danger);font-size:13px;margin-top:12px;min-height:18px;text-align:center}
+  .ok{color:var(--up);font-size:13px;margin-top:12px;text-align:center}
+  .hint{font-size:12px;color:var(--sub);margin-top:16px;line-height:1.8;text-align:center}
+
+  /* 本体 */
+  #app{display:none}
+  .wrap{max-width:560px;margin:0 auto;padding:20px 16px calc(110px + env(safe-area-inset-bottom))}
+  .top{display:flex;justify-content:space-between;align-items:center;margin:4px 4px 18px}
+  .top .logo{font-size:20px;font-weight:700;letter-spacing:.06em}
+  .top .d{font-size:12px;color:var(--sub)}
+  .hello{font-size:12px;color:var(--sub);padding:0 4px;margin-bottom:6px}
+  .hello b{display:block;font-size:21px;color:var(--ink);margin-top:2px;letter-spacing:.04em}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:18px 20px;margin-top:14px}
+  .card .k{font-size:11px;color:var(--sub);letter-spacing:.14em}
+  .ch{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
+  .ch h2{font-size:15px;font-weight:700;letter-spacing:.06em}
+  .ch h2 span{font-weight:400;font-size:12px;color:var(--sub);margin-left:8px}
+  .banner{background:var(--accent-soft);color:var(--accent-d);border-radius:14px;padding:12px 16px;font-size:13px;margin-top:14px;line-height:1.8}
+  .next{display:flex;align-items:center;gap:16px;margin-top:8px}
+  .next .day{font-size:40px;font-weight:700;line-height:1;min-width:52px;text-align:center}
+  .next .meta{font-size:14px;color:var(--ink2);line-height:1.7}
+  .more{font-size:12px;color:var(--sub);margin-top:10px;padding-top:10px;border-top:1px solid var(--line2)}
+  .stamps{display:flex;gap:10px;margin:12px 0 10px;flex-wrap:wrap}
+  .stamps i{width:38px;height:38px;border-radius:50%;border:1.5px dashed var(--faint);display:grid;place-items:center;font-style:normal;font-size:12px;color:var(--faint)}
+  .stamps i.on{border:0;background:var(--accent);color:#fff;font-weight:700}
+  .coupon{display:flex;justify-content:space-between;align-items:center;background:var(--accent-soft);border-radius:12px;padding:12px 14px;margin-top:12px}
+  .coupon b{font-size:20px;color:var(--accent-d)}
+  .coupon span{font-size:12px;color:var(--accent-d)}
+  .mrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:8px}
+  .mrow .l{font-size:11px;color:var(--sub)}
+  .mrow .v{font-size:24px;font-weight:700;line-height:1.3}
+  .mrow .v small{font-size:12px;color:var(--sub);margin-left:2px;font-weight:500}
+  .mrow .d{font-size:11.5px;font-weight:700}
+  .up{color:var(--up)}.dn{color:var(--down)}.muted{color:var(--sub)}
+  .goal{font-size:15px;font-weight:500;margin-top:4px}
+  .pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .pills button{padding:6px 13px;border-radius:999px;background:var(--pill);font-size:12.5px;color:var(--ink2)}
+  .pills button.on{background:var(--accent);color:#fff;font-weight:700}
+  canvas{display:block;width:100%}
+  .rec{padding:14px 0;border-top:1px solid var(--line2)}
+  .rec:first-child{border-top:0;padding-top:0}
+  .rec .h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .rec .dt{font-size:13px;font-weight:700}
+  .rec .pl{font-size:12px;color:var(--sub)}
+  .rec .vals{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;margin-top:4px;color:var(--ink2)}
+  .rec .nt{font-size:13px;color:var(--ink2);background:var(--tile);border-radius:10px;padding:9px 12px;margin-top:8px;line-height:1.8}
+  .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent-d);font-weight:700}
+  .tag.gray{background:var(--pill);color:var(--sub)}
+  .list{list-style:none}
+  .list li{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid var(--line2);font-size:14px}
+  .list li:first-child{border-top:0;padding-top:0}
+  .list li span:first-child{color:var(--sub);white-space:nowrap}
+  .list li span:last-child{text-align:right;word-break:break-all}
+  .btn{font-size:13px;font-weight:700;border-radius:999px;padding:10px 20px;border:1px solid var(--line);background:var(--paper);color:var(--ink);white-space:nowrap}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.wide{width:100%;padding:13px}
+  .empty{text-align:center;color:var(--sub);padding:22px 10px;font-size:13.5px;line-height:1.9}
+  .note{background:var(--tile);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--ink2);line-height:1.85}
+  .tabbar{position:fixed;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:532px;bottom:calc(14px + env(safe-area-inset-bottom));background:var(--paper);
+    border:1px solid var(--line);border-radius:999px;display:flex;padding:5px;z-index:40;box-shadow:0 12px 30px -12px rgba(120,70,60,.35)}
+  .tabbar button{flex:1;font-size:13.5px;padding:11px 0;border-radius:999px;color:var(--ink2)}
+  .tabbar button.on{background:var(--accent);color:#fff;font-weight:700}
+
+  /* 計測入力 */
+  .modal-bg{position:fixed;inset:0;background:rgba(60,40,36,.3);display:flex;align-items:flex-end;justify-content:center;z-index:50;animation:fade .18s ease both}
+  .modal{background:var(--paper);border-radius:22px 22px 0 0;width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;animation:up .26s cubic-bezier(.22,.9,.3,1) both}
+  @media(min-width:600px){.modal-bg{align-items:center;padding:20px}.modal{border-radius:22px}}
+  .modal-h{padding:20px 20px 8px;display:flex;justify-content:space-between;align-items:center}
+  .modal-h h3{font-size:17px;letter-spacing:.06em}
+  .modal-h .x{font-size:22px;color:var(--sub);width:34px;height:34px;border-radius:50%}
+  .modal-b{padding:8px 20px 16px;overflow-y:auto}
+  .modal-f{padding:12px 20px calc(18px + env(safe-area-inset-bottom));display:flex;gap:10px;border-top:1px solid var(--line2)}
+  .modal-f .btn{flex:1;padding:12px}
+  .form{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form .full{grid-column:1/-1}
+  .fld label{display:block;font-size:12px;color:var(--sub);margin-bottom:6px}
+  .fld input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:#fff}
+  .unit{position:relative}
+  .unit .u{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--sub);font-size:12px;pointer-events:none}
+  .unit input{padding-right:36px}
+  .toast{position:fixed;bottom:calc(90px + env(safe-area-inset-bottom));left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--ink);color:#fff;
+    padding:12px 22px;border-radius:999px;font-size:13.5px;z-index:90;transition:transform .3s,opacity .3s;max-width:calc(100% - 32px);text-align:center}
+  .toast.show{transform:translate(-50%,0);opacity:1}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  @keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .wrap>*{animation:up .3s cubic-bezier(.22,.9,.3,1) both}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  @media(max-width:360px){.mrow .v{font-size:20px}.stamps i{width:34px;height:34px}}
 </style>
 </head>
 <body>
 
 <div id="boot" class="loading">読み込み中…</div>
 
-<!-- CONFIG -->
 <div id="config" class="cover hidden">
-  <div class="card"><div class="logo"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.6v2.6M12 18.8v2.6M4.2 7.5l2.2 1.3M17.6 15.2l2.2 1.3M4.2 16.5l2.2-1.3M17.6 8.8l2.2-1.3"/></svg></div><div class="brand">初期設定<small>SUPABASE</small></div>
-    <p class="hint" style="margin:16px 0 4px">スタジオから案内されたURLとanonキーを入力してください。</p>
+  <div class="cover-card"><div class="logo">初期設定</div><div class="cap">CONNECTION</div>
     <div class="field"><label>Project URL</label><input id="cfgUrl" placeholder="https://xxxx.supabase.co"></div>
     <div class="field"><label>anon public key</label><input id="cfgKey" placeholder="eyJhbGci..."></div>
-    <button class="btn-primary" onclick="saveConfig()">保存して開始</button><div class="err" id="cfgErr"></div></div>
+    <button class="btn-block" onclick="saveConfig()">保存して開始</button><div class="err" id="cfgErr"></div></div>
 </div>
 
-<!-- AUTH -->
 <div id="auth" class="cover hidden">
-  <div class="card"><div class="logo"><svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto"><path d="M20 4C11 4 4.5 9.5 4.5 17.5c0 0 0 2 0 2s2 0 2 0C14.5 19.5 20 13 20 4z"/><path d="M5 19C9 13.5 13 9.5 18.5 7"/></svg></div><div class="brand">Pilates マイページ<small>CUSTOMER — お客様用</small></div>
-    <span class="badge">お客様用</span>
-    <div class="role-tabs"><button id="tabLogin" class="on" onclick="authMode('login')">ログイン</button>
-      <button id="tabSignup" onclick="authMode('signup')">はじめての方</button></div>
+  <div class="cover-card">
+    <div class="logo" id="authLogo">Pilates</div><div class="cap">MY PAGE</div>
+    <div class="seg"><button id="tabLogin" class="on" onclick="authMode('login')">ログイン</button><button id="tabSignup" onclick="authMode('signup')">はじめての方</button></div>
     <div class="field"><label>メールアドレス</label><input id="auEmail" type="email" autocomplete="email"></div>
-    <div class="field"><label>パスワード</label><input id="auPass" type="password" onkeydown="if(event.key==='Enter')doAuth()"></div>
-    <button class="btn-primary" id="auBtn" onclick="doAuth()">ログイン</button>
+    <div class="field"><label>パスワード</label><input id="auPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()"></div>
+    <button class="btn-block" id="auBtn" onclick="doAuth()">ログイン</button>
     <div class="err" id="auErr"></div><div class="ok" id="auOk"></div>
-    <div class="hint" id="authHint"><b>スタジオに登録したメールアドレス</b>で「はじめての方」から登録してください。</div></div>
+    <div class="hint" id="authHint">はじめての方は、<b>スタジオに登録したメールアドレス</b>で「はじめての方」から登録してください。</div>
+  </div>
 </div>
 
-<!-- APP -->
 <div id="app">
-  <div class="topbar"><span class="title">マイページ</span>
-    <div class="who"><b id="whoName"></b><span id="whoEmail"></span></div>
-    <button class="logout" onclick="signOut()">ログアウト</button></div>
   <div class="wrap" id="view"></div>
-  <div class="tabbar" id="tabbar"></div>
+  <nav class="tabbar" id="tabbar"></nav>
 </div>
 
 <div id="modalRoot"></div>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>if(new URLSearchParams(location.search).has('demo'))document.write('<script src="demo.js"><\/script>');</script>
 <script>
-/* ================= CONFIG =================
-   ↓ここに直接書けば設定画面をスキップできます（お客様配布時は書き込んでおくと親切）。 */
 let SUPABASE_URL="https://jedhznwwspoeoztokqad.supabase.co";
 let SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGh6bnd3c3BvZW96dG9rcWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwNjMzNTQsImV4cCI6MjA5ODYzOTM1NH0.41y_csW3FKEjXRlsXfBydA4TPXwbJBKrHUlOsQNgoFc";
+const DEMO=!!window.demoClient;
 
-let sb=null,meUser=null,me=null;                 // me = 自分のcustomer行
-const store={measurements:[],sessions:[]};
-let ui={view:'data',metric:'weight'};
+let sb=null,meUser=null,me=null;
+const store={measurements:[],sessions:[],reservations:null,coupon:null,studio:null};
+let ui={view:'home',metric:'weight'};
 
-function getConfig(){return{url:SUPABASE_URL||localStorage.getItem('sb_url')||'',key:SUPABASE_ANON_KEY||localStorage.getItem('sb_key')||''};}
+function getConfig(){return {url:SUPABASE_URL||localStorage.getItem('sb_url')||'',key:SUPABASE_ANON_KEY||localStorage.getItem('sb_key')||''};}
 function saveConfig(){const u=document.getElementById('cfgUrl').value.trim(),k=document.getElementById('cfgKey').value.trim();
   if(!u||!k){document.getElementById('cfgErr').textContent='両方入力してください';return;}
   localStorage.setItem('sb_url',u);localStorage.setItem('sb_key',k);location.reload();}
 
-/* utils */
+const pad=n=>String(n).padStart(2,'0');
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-function initials(n){const p=(n||'').trim().split(/\s+/);return ((p[0]||'')[0]||'')+((p[1]||'')[0]||'')||(n||'?')[0];}
-function fmtDate(d){if(!d)return '—';const t=new Date(d);return `${t.getFullYear()}/${String(t.getMonth()+1).padStart(2,'0')}/${String(t.getDate()).padStart(2,'0')}`;}
-function today(){return new Date().toISOString().slice(0,10);}
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+function ymd(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
+function today(){return ymd(new Date());}
+function dowJp(s){return ['日','月','火','水','木','金','土'][new Date(s+'T00:00:00').getDay()];}
+function fmtYmd(s){if(!s)return '—';const [y,m,d]=String(s).slice(0,10).split('-');return `${y}/${m}/${d}`;}
+function fmtMd(s){const d=new Date(s+'T00:00:00');return `${d.getMonth()+1}月${d.getDate()}日（${dowJp(s)}）`;}
+function yen(n){return '¥'+Math.round(n||0).toLocaleString('ja-JP');}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400);}
 function show(id){['boot','config','auth'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));document.getElementById('app').style.display=id==='app'?'block':'none';}
 const METRICS=[['weight','体重','kg'],['body_fat','体脂肪率','%'],['waist','ウエスト','cm'],['hip','ヒップ','cm'],['thigh','太もも','cm'],['arm','二の腕','cm']];
-/* 単色・線画アイコン */
-const ICONS={
-  user:'<circle cx="12" cy="8" r="3.4"/><path d="M5.5 19.5c0-3.3 2.9-5.6 6.5-5.6s6.5 2.3 6.5 5.6"/>',
-  chart:'<path d="M4 4v16h16"/><path d="M7 14l3.5-3.5 3 2L20 6"/>',
-  note:'<rect x="5" y="4" width="14" height="17" rx="2.2"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4.5"/>',
-  target:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.3"/>',
-  search:'<circle cx="11" cy="11" r="6.4"/><path d="M20 20l-4.3-4.3"/>'
-};
-function icon(n,s){s=s||20;return `<svg class="ico" viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[n]||''}</svg>`;}
+const CATLABEL={training:'トレーニング',slimming:'痩身',bust:'バスト'};
+function studioName(){return (store.studio&&store.studio.studio_name)||localStorage.getItem('studio_name_c')||'Pilates';}
 
-/* boot */
+/* ---------- 起動・ログイン ---------- */
 async function boot(){
+  document.getElementById('authLogo').textContent=localStorage.getItem('studio_name_c')||'Pilates';
+  if(DEMO){sb=window.demoClient;await onAuthed();return;}
   const {url,key}=getConfig();if(!url||!key){show('config');return;}
   try{sb=supabase.createClient(url,key);}catch(e){show('config');return;}
   const {data}=await sb.auth.getSession();
-  if(data.session){await onAuthed();}else{show('auth');}
+  if(data.session)await onAuthed();else show('auth');
   sb.auth.onAuthStateChange((_e,s)=>{if(!s)show('auth');});
 }
-
-/* auth */
 let _mode='login';
-function authMode(m){_mode=m;document.getElementById('tabLogin').classList.toggle('on',m==='login');
-  document.getElementById('tabSignup').classList.toggle('on',m==='signup');
+function authMode(m){_mode=m;document.getElementById('tabLogin').classList.toggle('on',m==='login');document.getElementById('tabSignup').classList.toggle('on',m==='signup');
   document.getElementById('auBtn').textContent=m==='login'?'ログイン':'登録する';
+  document.getElementById('auPass').autocomplete=m==='login'?'current-password':'new-password';
   document.getElementById('auErr').textContent='';document.getElementById('auOk').textContent='';}
 async function doAuth(){
   const email=document.getElementById('auEmail').value.trim(),pass=document.getElementById('auPass').value;
@@ -198,159 +214,175 @@ async function doAuth(){
   btn.disabled=true;btn.textContent='処理中…';
   try{
     if(_mode==='signup'){
-      const {data,error}=await sb.auth.signUp({email,password:pass});if(error)throw error;
-      if(!data.session){okEl.textContent='確認メールを送信しました。承認後にログインしてください。';authMode('login');}
+      const {data,error}=await sb.auth.signUp({email,password:pass,options:{emailRedirectTo:location.origin+location.pathname}});if(error)throw error;
+      if(!data.session){authMode('login');okEl.textContent='確認メールを送りました。メールのリンクを開いてから、ログインしてください。';}
       else await onAuthed();
     }else{const {error}=await sb.auth.signInWithPassword({email,password:pass});if(error)throw error;await onAuthed();}
   }catch(e){errEl.textContent=translateAuthErr(e.message);}
   finally{btn.disabled=false;btn.textContent=_mode==='login'?'ログイン':'登録する';}
 }
 function translateAuthErr(m){
-  if(/Invalid login/i.test(m))return 'メールまたはパスワードが違います';
-  if(/already registered/i.test(m))return 'このメールは既に登録済みです。「ログイン」からお進みください';
+  if(/Invalid login/i.test(m))return 'メールアドレスまたはパスワードが違います';
+  if(/already registered/i.test(m))return 'このメールアドレスは登録済みです。「ログイン」からお進みください';
   if(/at least 6/i.test(m))return 'パスワードは6文字以上にしてください';
-  if(/Email not confirmed/i.test(m))return 'メール確認が未完了です。受信メールのリンクを承認してください';
+  if(/Email not confirmed/i.test(m))return 'メールの確認がまだです。届いたメールのリンクを開いてください';
+  if(/fetch/i.test(m))return '接続できませんでした。通信状態を確認してください';
   return m;
 }
 async function onAuthed(){
   const {data:{user}}=await sb.auth.getUser();meUser=user;
-  // 自分のcustomer行を取得（RLSでメール一致の行のみ返る）
-  const {data:rows}=await sb.from('customers').select('*');
-  me=(rows&&rows[0])||null;
-  document.getElementById('whoEmail').textContent=user.email;
+  const [{data:rows},st]=await Promise.all([sb.from('customers').select('*'),sb.from('studio_settings').select('*').eq('id',1).maybeSingle()]);
+  me=(rows&&rows[0])||null;store.studio=st&&!st.error?st.data:null;
+  if(store.studio&&store.studio.studio_name){try{localStorage.setItem('studio_name_c',store.studio.studio_name);}catch(e){}}
+  document.title='マイページ — '+studioName();
   show('app');
-  if(!me){ renderNotLinked(); return; }
-  document.getElementById('whoName').textContent=me.name;
-  await loadMine();renderTabs();render();
+  if(!me){renderNotLinked();return;}
+  await loadMine();render();
 }
-async function signOut(){await sb.auth.signOut();show('auth');document.getElementById('auPass').value='';}
-
+async function signOut(){if(DEMO){location.href=location.pathname;return;}await sb.auth.signOut();show('auth');document.getElementById('auPass').value='';}
 function renderNotLinked(){
   document.getElementById('tabbar').innerHTML='';
-  document.getElementById('view').innerHTML=`<div style="padding:40px 6px"><div class="notice">
-    <div style="margin-bottom:10px;display:flex;justify-content:center;color:var(--accent)">${icon('search',36)}</div>
-    <b>${esc(meUser.email)}</b> に対応するお客様情報が見つかりませんでした。<br><br>
-    スタジオに登録されているメールアドレスと、<b>同じメール</b>でログインしているかご確認ください。<br>
-    ご不明な場合は担当トレーナーにお問い合わせください。<br><br>
-    <button class="btn ghost sm" onclick="signOut()">別のメールでログインし直す</button></div></div>`;
+  document.getElementById('view').innerHTML=`<div class="top"><div class="logo">${esc(studioName())}</div></div>
+    <div class="card"><div class="ch"><h2>お客様情報が見つかりません</h2></div>
+    <div class="note"><b>${esc(meUser.email)}</b> に対応するお客様情報が見つかりませんでした。<br>スタジオに登録したメールアドレスと<b>同じメールアドレス</b>でログインしているか、ご確認ください。わからない場合は、担当トレーナーにお声がけください。</div>
+    <button class="btn wide" style="margin-top:16px" onclick="signOut()">別のメールアドレスでログインし直す</button></div>`;
 }
 
-/* data */
+/* ---------- データ ---------- */
 async function loadMine(){
-  const [m,s]=await Promise.all([
+  const [m,s,r,c]=await Promise.all([
     sb.from('measurements').select('*').eq('customer_id',me.id).order('date',{ascending:true}),
-    sb.from('sessions').select('*').eq('customer_id',me.id).order('date',{ascending:false})]);
+    sb.from('sessions').select('*').eq('customer_id',me.id).order('date',{ascending:false}),
+    sb.rpc('my_reservations'),sb.rpc('my_coupon_status')]);
   store.measurements=m.data||[];store.sessions=s.data||[];
+  store.reservations=r&&!r.error?(r.data||[]):null;
+  store.coupon=c&&!c.error&&c.data?c.data:null;
 }
 function measures(){return [...store.measurements].sort((a,b)=>a.date.localeCompare(b.date));}
 
-/* tabs */
-function renderTabs(){
-  const items=[['data','計測'],['sessions','レッスン'],['profile','プロフィール']];
-  document.getElementById('tabbar').innerHTML=items.map(([k,l])=>
-    `<button class="${ui.view===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('');
+/* ---------- 画面 ---------- */
+const TABS=[['home','ホーム'],['record','記録'],['mypage','マイページ']];
+function go(v){ui.view=v;render();window.scrollTo(0,0);}
+function render(){
+  document.getElementById('tabbar').innerHTML=TABS.map(([k,l])=>`<button class="${ui.view===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('');
+  const v=document.getElementById('view');
+  v.innerHTML=(ui.view==='record'?viewRecord:ui.view==='mypage'?viewMypage:viewHome)();
+  if(ui.view==='record')drawChart(ui.metric);
 }
-function go(v){ui.view=v;renderTabs();render();}
-function render(){const v=document.getElementById('view');
-  ({data:()=>{v.innerHTML=viewData();drawChart(ui.metric);},sessions:()=>v.innerHTML=viewSessions(),profile:()=>v.innerHTML=viewProfile()}[ui.view])();}
-
-/* view: data */
-function viewData(){
-  const ms=measures(),first=ms[0],last=ms[ms.length-1];
-  const diff=k=>(first&&last&&first[k]!=null&&last[k]!=null)?(last[k]-first[k]):null;
-  const cards=['weight','body_fat','waist'].map(k=>{const meta=METRICS.find(x=>x[0]===k);const d=diff(k);
-    const cur=last&&last[k]!=null?last[k]:null;const sign=d==null?'':(d<0?'':'+');
-    const col=d==null?'var(--sub)':(d<0?'var(--accent)':(d>0?'var(--danger)':'var(--sub)'));
-    return `<div class="stat"><div class="k">${meta[1]}</div><div class="v">${cur!=null?cur:'—'}<small> ${cur!=null?meta[2]:''}</small></div>
-      <div class="d" style="color:${col}">${d!=null?`${sign}${(+d).toFixed(1)}`:'—'}</div></div>`;}).join('');
-  return `<div class="greet">こんにちは、${esc(me.name)} さん</div>
-  <div class="greet-sub">あなたの計測データ${last?` · 最終計測 ${fmtDate(last.date)}`:''}</div>
-  ${me.goal?`<div class="goal-box"><div class="l" style="display:flex;align-items:center;gap:5px">${icon('target',13)} 目標</div><div class="t">${esc(me.goal)}</div></div>`:''}
-  <div class="cards">${cards}</div>
-  <div class="panel"><h3>推移グラフ</h3><div class="metric-pills">
-    ${METRICS.map(m=>`<button class="${ui.metric===m[0]?'on':''}" onclick="ui.metric='${m[0]}';render()">${m[1]}</button>`).join('')}</div>
-    <div class="chart-wrap"><canvas id="chart" width="640" height="260"></canvas></div></div>
-  <div class="panel"><h3>計測履歴 <span class="count">${ms.length}</span></h3>
-    ${ms.length?`<div style="overflow-x:auto"><table><thead><tr><th>日付</th><th>体重</th><th>体脂肪%</th><th>ウエスト</th><th>ヒップ</th></tr></thead><tbody>
-      ${[...ms].reverse().map(m=>`<tr><td>${fmtDate(m.date)}</td><td>${m.weight??'—'}</td><td>${m.body_fat??'—'}</td><td>${m.waist??'—'}</td><td>${m.hip??'—'}</td></tr>`).join('')}
-    </tbody></table></div>`:`<div class="empty"><span class="big">${icon('chart',38)}</span>まだ計測データがありません</div>`}</div>
-  <button class="btn block" onclick="openMeasureForm()">＋ 自分で計測を記録する</button>`;
+function topBar(){return `<div class="top"><div class="logo">${esc(studioName())}</div><div class="d">${fmtMd(today())}</div></div>`;}
+function viewHome(){
+  const ms=measures(),last=ms[ms.length-1],prev=ms[ms.length-2];
+  const rv=store.reservations,next=rv&&rv[0];
+  const c=store.coupon;
+  let stampHtml='';
+  if(c){const every=Math.max(1,+c.every||3),qty=+c.qty||0,stamps=qty%every,avail=Math.max(0,Math.floor(qty/every)-(+c.used||0));
+    stampHtml=`<div class="card"><div class="k">プロテイン スタンプ</div>
+      <div class="stamps">${Array.from({length:every},(_,i)=>`<i class="${i<stamps?'on':''}">${i+1}</i>`).join('')}</div>
+      <div style="font-size:13px;color:var(--ink2)">あと <b>${every-stamps}個</b> で ${yen(c.amount)} の割引券</div>
+      ${avail?`<div class="coupon"><span>使える割引券</span><b>${yen(c.amount)}${avail>1?` × ${avail}枚`:''}</b></div><div class="muted" style="font-size:12px;margin-top:8px">次回のお会計でスタッフにお伝えください。</div>`:''}</div>`;}
+  const diff=k=>last&&prev&&last[k]!=null&&prev[k]!=null?(+last[k]-(+prev[k])):null;
+  return `${topBar()}
+  <div class="hello">${me.withdrawn_at?'':'こんにちは'}<b>${esc(me.name)} さま</b></div>
+  ${me.withdrawn_at?`<div class="banner">${fmtYmd(me.withdrawn_at)} に退会されています。これまでの記録はご覧いただけます。</div>`:''}
+  ${rv?`<div class="card"><div class="k">次回のご予約</div>
+    ${next?`<div class="next"><div class="day">${+next.date.slice(8,10)}</div><div class="meta">${fmtMd(next.date)} ${esc(next.time||'')}<br>${CATLABEL[next.category]||'レッスン'}${next.duration?`・${next.duration}分`:''}</div></div>
+      ${rv.length>1?`<div class="more">その後のご予約：${rv.slice(1,4).map(r=>`${+r.date.slice(5,7)}/${+r.date.slice(8,10)} ${esc(r.time||'')}`).join('、')}${rv.length>4?' ほか':''}</div>`:''}`
+      :'<div class="muted" style="font-size:13px;margin-top:6px">次回のご予約はまだありません</div>'}</div>`:''}
+  ${stampHtml}
+  <div class="card"><div class="k">${last?`前回の計測　${fmtYmd(last.date)}`:'計測'}</div>
+    ${last?`<div class="mrow">${['weight','body_fat','waist'].map(k=>{const meta=METRICS.find(m=>m[0]===k),d=diff(k);
+      return `<div><div class="l">${meta[1]}</div><div class="v">${last[k]!=null?last[k]:'—'}<small>${last[k]!=null?meta[2]:''}</small></div>
+        <div class="d ${d==null?'muted':d<=0?'up':'dn'}">${d==null?'　':`${d<0?'▼':d>0?'▲':'±'} ${Math.abs(d).toFixed(1)}${meta[2]}`}</div></div>`;}).join('')}</div>
+      <button class="btn wide" style="margin-top:14px" onclick="go('record')">推移を見る</button>`
+      :'<div class="muted" style="font-size:13px;margin-top:6px">まだ計測の記録がありません</div>'}</div>
+  ${me.goal?`<div class="card"><div class="k">目標</div><div class="goal">${esc(me.goal)}</div></div>`:''}`;
+}
+function viewRecord(){
+  const ms=measures(),ss=store.sessions;
+  const rows=[];const used=new Set();
+  ss.forEach(s=>{const m=ms.find(x=>x.date===s.date&&!used.has(x.id));if(m)used.add(m.id);rows.push({date:s.date,s,m});});
+  ms.filter(m=>!used.has(m.id)).forEach(m=>rows.push({date:m.date,s:null,m}));
+  rows.sort((a,b)=>b.date.localeCompare(a.date));
+  return `${topBar()}
+  <div class="card"><div class="ch"><h2>推移グラフ</h2></div>
+    <div class="pills">${METRICS.map(m=>`<button class="${ui.metric===m[0]?'on':''}" onclick="ui.metric='${m[0]}';render()">${m[1]}</button>`).join('')}</div>
+    <canvas id="chart" height="230"></canvas></div>
+  <div class="card"><div class="ch"><h2>これまでの記録<span>${rows.length}件</span></h2></div>
+    ${rows.length?rows.slice(0,60).map(({date,s,m})=>`<div class="rec"><div class="h"><span class="dt">${fmtYmd(date)}（${dowJp(date)}）</span>
+        <span>${s?`<span class="tag">${CATLABEL[s.category]||'レッスン'}</span>`:'<span class="tag gray">計測</span>'}</span></div>
+      ${s&&s.menu?`<div class="pl">${esc(s.menu)}${s.duration?`・${s.duration}分`:''}</div>`:''}
+      ${m?`<div class="vals">${METRICS.filter(([k])=>m[k]!=null).map(([k,l,u])=>`<span>${l} <b>${m[k]}</b>${u}</span>`).join('')}</div>`:''}
+      ${s&&s.note?`<div class="nt">${esc(s.note)}</div>`:''}</div>`).join('')
+      :'<div class="empty">まだ記録がありません</div>'}</div>
+  ${me.withdrawn_at?'':`<button class="btn primary wide" style="margin-top:16px" onclick="openMeasureForm()">自分で計測を記録する</button>`}`;
+}
+function viewMypage(){
+  const s=store.studio||{};
+  return `${topBar()}
+  <div class="card"><div class="ch"><h2>${esc(me.name)} さま</h2></div>
+    <ul class="list">
+      ${me.kana?`<li><span>ふりがな</span><span>${esc(me.kana)}</span></li>`:''}
+      ${me.joined?`<li><span>入会日</span><span>${fmtYmd(me.joined)}</span></li>`:''}
+      ${[['training','トレーニング'],['slimming','痩身'],['bust','バスト']].some(([k])=>me['cat_'+k])?`<li><span>ご契約</span><span>${[['training','トレーニング'],['slimming','痩身'],['bust','バスト']].filter(([k])=>me['cat_'+k]).map(([,l])=>l).join('・')}</span></li>`:''}
+      <li><span>ログイン</span><span>${esc(meUser.email)}</span></li></ul>
+    <div class="muted" style="font-size:12px;margin-top:12px">登録内容の変更は、担当トレーナーにお申し付けください。</div></div>
+  <div class="card"><div class="ch"><h2>${esc(studioName())}</h2></div>
+    <ul class="list">
+      ${s.address?`<li><span>住所</span><span>${esc(s.address)}</span></li>`:''}
+      ${s.phone?`<li><span>電話</span><span><a href="tel:${esc(String(s.phone).replace(/[^0-9+]/g,''))}" style="color:inherit">${esc(s.phone)}</a></span></li>`:''}
+      ${s.hours?`<li><span>営業時間</span><span>${esc(s.hours)}</span></li>`:''}
+      ${s.holiday?`<li><span>定休日</span><span>${esc(s.holiday)}</span></li>`:''}
+    </ul>${!s.address&&!s.phone&&!s.hours?'<div class="muted" style="font-size:13px">スタジオ情報は準備中です</div>':''}</div>
+  <div class="card"><div class="ch"><h2>アプリのように使う</h2></div>
+    <div class="note">iPhone：Safariの共有ボタン →「ホーム画面に追加」<br>Android：Chromeのメニュー →「ホーム画面に追加」</div></div>
+  <button class="btn wide" style="margin-top:16px" onclick="signOut()">ログアウト</button>`;
 }
 
-/* view: sessions */
-function viewSessions(){
-  const ss=store.sessions;
-  return `<div class="greet">レッスン履歴</div><div class="greet-sub">これまでのレッスンとトレーナーからのアドバイス</div>
-  <div class="panel"><h3>記録 <span class="count">${ss.length}</span></h3>
-    ${ss.length?ss.map(s=>`<div class="sess"><div class="top"><span class="mn">${esc(s.menu)}</span><span class="dt">${fmtDate(s.date)}・${s.duration||'—'}分</span></div>
-      ${s.note?`<div class="nt">${esc(s.note)}</div>`:''}</div>`).join('')
-      :`<div class="empty"><span class="big">${icon('note',38)}</span>まだレッスン記録がありません</div>`}</div>`;
-}
-
-/* view: profile */
-function viewProfile(){
-  return `<div class="greet">プロフィール</div><div class="greet-sub">登録情報</div>
-  <div class="panel"><div style="display:flex;gap:14px;align-items:center;margin-bottom:6px">
-    <span style="width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:19px">${esc(initials(me.name))}</span>
-    <div><div style="font-size:19px;font-weight:800">${esc(me.name)}</div><div class="muted" style="font-size:13px">${esc(me.kana||'')}</div></div></div>
-    ${me.goal?`<div class="goal-box" style="margin-top:14px"><div class="l" style="display:flex;align-items:center;gap:5px">${icon('target',13)} 目標</div><div class="t">${esc(me.goal)}</div></div>`:''}
-    <table style="margin-top:8px">
-      ${me.plan?`<tr><td class="muted">プラン</td><td class="right">${esc(me.plan)}</td></tr>`:''}
-      ${me.joined?`<tr><td class="muted">入会日</td><td class="right">${fmtDate(me.joined)}</td></tr>`:''}
-      <tr><td class="muted">ログイン</td><td class="right">${esc(meUser.email)}</td></tr>
-    </table>
-    <p class="muted" style="font-size:12px;margin-top:14px">※ 登録情報の変更は担当トレーナーへお申し付けください。</p>
-    <div style="margin-top:14px"><button class="btn ghost sm" onclick="signOut()">ログアウト</button></div></div>`;
-}
-
-/* chart */
+/* ---------- グラフ ---------- */
 function drawChart(metric){
-  const canvas=document.getElementById('chart');if(!canvas)return;
-  const ctx=canvas.getContext('2d'),dpr=window.devicePixelRatio||1,W=canvas.clientWidth||640,H=260;
-  canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.height=H+'px';ctx.scale(dpr,dpr);ctx.clearRect(0,0,W,H);
-  const meta=METRICS.find(m=>m[0]===metric);
-  const data=measures().filter(m=>m[metric]!=null).map(m=>({x:m.date,y:+m[metric]}));
-  const pad={l:44,r:16,t:20,b:32},cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
-  ctx.font='12px sans-serif';
-  if(!data.length){ctx.fillStyle='#ad8d84';ctx.textAlign='center';ctx.fillText('データがありません',W/2,H/2);return;}
-  const ys=data.map(d=>d.y);let mn=Math.min(...ys),mx=Math.max(...ys);if(mn===mx){mn-=1;mx+=1;}const p=(mx-mn)*.15;mn-=p;mx+=p;
-  const X=i=>data.length===1?pad.l+cw/2:pad.l+cw*i/(data.length-1),Y=v=>pad.t+ch*(1-(v-mn)/(mx-mn));
-  ctx.strokeStyle='#f1ded7';ctx.fillStyle='#d8b8ac';ctx.textAlign='right';ctx.font='11px sans-serif';
-  for(let g=0;g<=4;g++){const v=mn+(mx-mn)*g/4,y=Y(v);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();ctx.fillText(v.toFixed(1),pad.l-8,y+4);}
-  const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+ch);grad.addColorStop(0,'rgba(244,122,104,.28)');grad.addColorStop(1,'rgba(244,122,104,0)');
-  ctx.beginPath();ctx.moveTo(X(0),Y(data[0].y));data.forEach((d,i)=>ctx.lineTo(X(i),Y(d.y)));ctx.lineTo(X(data.length-1),pad.t+ch);ctx.lineTo(X(0),pad.t+ch);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
-  ctx.beginPath();ctx.strokeStyle='#e05e4b';ctx.lineWidth=2.5;ctx.lineJoin='round';data.forEach((d,i)=>i===0?ctx.moveTo(X(i),Y(d.y)):ctx.lineTo(X(i),Y(d.y)));ctx.stroke();
-  ctx.textAlign='center';data.forEach((d,i)=>{ctx.beginPath();ctx.arc(X(i),Y(d.y),4,0,7);ctx.fillStyle='#fff';ctx.fill();ctx.lineWidth=2.5;ctx.strokeStyle='#e05e4b';ctx.stroke();
-    ctx.fillStyle='#5a423c';ctx.font='bold 11px sans-serif';ctx.fillText(d.y,X(i),Y(d.y)-12);
-    ctx.fillStyle='#d8b8ac';ctx.font='10px sans-serif';const dd=new Date(d.x);ctx.fillText(`${dd.getMonth()+1}/${dd.getDate()}`,X(i),pad.t+ch+18);});
-  ctx.fillStyle='#ad8d84';ctx.textAlign='left';ctx.font='12px sans-serif';ctx.fillText(`${meta[1]} (${meta[2]})`,pad.l,14);
+  const cv=document.getElementById('chart');if(!cv)return;
+  const dpr=window.devicePixelRatio||1,W=cv.clientWidth||340,H=230;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.height=H+'px';const x=cv.getContext('2d');x.scale(dpr,dpr);
+  const F='"Zen Kaku Gothic New",sans-serif',meta=METRICS.find(m=>m[0]===metric);
+  const d=measures().filter(m=>m[metric]!=null).map(m=>({x:m.date,y:+m[metric]}));
+  const P={l:38,r:12,t:24,b:28},cw=W-P.l-P.r,ch=H-P.t-P.b;
+  x.font=`12px ${F}`;x.fillStyle='#a08a85';
+  if(!d.length){x.textAlign='center';x.fillText('まだ記録がありません',W/2,H/2);return;}
+  const ys=d.map(v=>v.y);let mn=Math.min(...ys),mx=Math.max(...ys);if(mn===mx){mn-=1;mx+=1;}const pd=(mx-mn)*.18;mn-=pd;mx+=pd;
+  const X=i=>d.length===1?P.l+cw/2:P.l+cw*i/(d.length-1),Y=v=>P.t+ch*(1-(v-mn)/(mx-mn));
+  x.textAlign='left';x.fillText(`${meta[1]}（${meta[2]}）`,0,12);x.font=`10.5px ${F}`;
+  for(let g=0;g<=4;g++){const v=mn+(mx-mn)*g/4,yy=Y(v);x.strokeStyle='#f5edea';x.beginPath();x.moveTo(P.l,yy);x.lineTo(W-P.r,yy);x.stroke();x.textAlign='right';x.fillStyle='#a08a85';x.fillText(v.toFixed(1),P.l-5,yy+4);}
+  const gr=x.createLinearGradient(0,P.t,0,P.t+ch);gr.addColorStop(0,'rgba(232,163,160,.28)');gr.addColorStop(1,'rgba(232,163,160,0)');
+  x.beginPath();x.moveTo(X(0),Y(d[0].y));d.forEach((v,i)=>x.lineTo(X(i),Y(v.y)));x.lineTo(X(d.length-1),P.t+ch);x.lineTo(X(0),P.t+ch);x.closePath();x.fillStyle=gr;x.fill();
+  x.beginPath();x.strokeStyle='#d98e8a';x.lineWidth=2.2;x.lineJoin='round';d.forEach((v,i)=>i?x.lineTo(X(i),Y(v.y)):x.moveTo(X(i),Y(v.y)));x.stroke();
+  const every=Math.ceil(d.length/(W<420?6:12));
+  d.forEach((v,i)=>{x.beginPath();x.arc(X(i),Y(v.y),3.2,0,7);x.fillStyle='#fff';x.fill();x.lineWidth=2;x.strokeStyle='#d98e8a';x.stroke();
+    if((i%every===0&&d.length-1-i>=every*.6)||i===d.length-1){x.textAlign='center';x.fillStyle='#4f3d3a';x.font=`700 10.5px ${F}`;x.fillText(v.y,X(i),Y(v.y)-9);
+      x.fillStyle='#a08a85';x.font=`10px ${F}`;const dd=new Date(v.x+'T00:00:00');x.fillText(`${dd.getMonth()+1}/${dd.getDate()}`,X(i),P.t+ch+16);}});
 }
 
-/* measure form (customer self-record) */
-function modal(h){document.getElementById('modalRoot').innerHTML=h;}
+/* ---------- 自分で計測を記録 ---------- */
+function modal(inner){document.getElementById('modalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${inner}</div></div>`;}
 function closeModal(){document.getElementById('modalRoot').innerHTML='';}
 function openMeasureForm(){
-  modal(`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">
-    <div class="modal-h"><h3>計測を記録</h3><button class="x" onclick="closeModal()">×</button></div>
-    <div class="modal-b"><div class="form-grid"><div class="fld full"><label>計測日 *</label><input id="m_date" type="date" value="${today()}"></div>
-      ${[['weight','体重','kg'],['body_fat','体脂肪率','%'],['waist','ウエスト','cm'],['hip','ヒップ','cm'],['thigh','太もも','cm'],['arm','二の腕','cm']]
-        .map(([k,l,u])=>`<div class="fld"><label>${l}</label><div class="unit-in"><input id="m_${k}" type="number" step="0.1" inputmode="decimal"><span class="u">${u}</span></div></div>`).join('')}
-      <div class="fld full"><label>メモ</label><textarea id="m_note" placeholder="体調・気づきなど"></textarea></div></div></div>
-    <div class="modal-f"><button class="btn ghost" style="flex:1" onclick="closeModal()">キャンセル</button>
-      <button class="btn" style="flex:1" id="mbtn" onclick="saveMeasure()">記録する</button></div></div></div>`);
-  setTimeout(()=>document.getElementById('m_weight').focus(),50);
+  modal(`<div class="modal-h"><h3>計測を記録</h3><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-b"><div class="form"><div class="fld full"><label>計測日</label><input id="m_date" type="date" value="${today()}"></div>
+      ${METRICS.map(([k,l,u])=>`<div class="fld"><label>${l}</label><div class="unit"><input id="m_${k}" type="number" step="0.1" inputmode="decimal"><span class="u">${u}</span></div></div>`).join('')}
+      <div class="fld full"><label>メモ</label><input id="m_note" placeholder="体調・気づきなど"></div></div></div>
+    <div class="modal-f"><button class="btn" onclick="closeModal()">キャンセル</button><button class="btn primary" id="mbtn" onclick="saveMeasure()">記録する</button></div>`);
 }
 async function saveMeasure(){
-  const num=k=>{const v=document.getElementById('m_'+k).value;return v===''?null:parseFloat(v);};
   const date=document.getElementById('m_date').value;if(!date){toast('計測日を入力してください');return;}
-  const row={customer_id:me.id,date,weight:num('weight'),body_fat:num('body_fat'),waist:num('waist'),hip:num('hip'),thigh:num('thigh'),arm:num('arm'),note:document.getElementById('m_note').value.trim()||null};
-  const btn=document.getElementById('mbtn');btn.disabled=true;btn.textContent='保存中…';
+  const row={customer_id:me.id,date,note:document.getElementById('m_note').value.trim()||null};let any=false;
+  METRICS.forEach(([k])=>{const v=document.getElementById('m_'+k).value;row[k]=v===''?null:parseFloat(v);if(v!=='')any=true;});
+  if(!any){toast('どれか1つは入力してください');return;}
+  const btn=document.getElementById('mbtn');btn.disabled=true;
   const {error}=await sb.from('measurements').insert(row);
   if(error){toast('エラー: '+error.message);btn.disabled=false;return;}
   await loadMine();closeModal();toast('記録しました');render();
 }
-
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+let _rz;window.addEventListener('resize',()=>{clearTimeout(_rz);_rz=setTimeout(()=>{if(ui.view==='record')drawChart(ui.metric);},150);});
 boot();
 </script>
 </body>

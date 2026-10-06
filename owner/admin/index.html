@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>運営管理</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f8f3f1;--paper:#ffffff;--ink:#4f3d3a;--ink2:#6e5955;--sub:#a08a85;--faint:#cdbcb7;
+    --line:#eee2de;--line2:#f5edea;--accent:#e8a3a0;--accent-h:#df9692;--accent-d:#bf716d;--accent-soft:#fbeeec;
+    --pill:#f4ebe8;--tile:#fcf7f6;--up:#6b9a83;--down:#bf716d;--danger:#c0574f;
+    --shadow:0 1px 2px rgba(120,80,70,.04),0 10px 28px -18px rgba(150,90,80,.24);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Zen Kaku Gothic New',-apple-system,'Hiragino Sans',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+  input,select,textarea{font:inherit;font-size:15px;color:var(--ink)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--accent-soft)}
+  .wrap{max-width:1120px;margin:0 auto;padding:34px 28px 80px}
+  .head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:22px}
+  .eyebrow{font-size:12px;color:var(--sub);letter-spacing:.14em;margin-bottom:4px}
+  h1{font-size:24px;font-weight:700;letter-spacing:.08em}
+  .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .btn{font-size:13px;font-weight:700;border-radius:999px;padding:9px 18px;border:1px solid var(--line);background:var(--paper);color:var(--ink);white-space:nowrap;transition:background .15s}
+  .btn:hover{background:var(--pill)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{background:var(--accent-h)}
+  .btn.sm{padding:6px 13px;font-size:12px}
+  .btn.danger{color:var(--danger)}
+  .btn:disabled{opacity:.55}
+  .link{font-size:12px;color:var(--sub);white-space:nowrap}
+  .link:hover{color:var(--ink)}
+  .link.del:hover{color:var(--danger)}
+  select.plain{padding:9px 14px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:14px;max-width:240px}
+  .seg{display:inline-flex;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:4px;gap:2px;box-shadow:var(--shadow);margin-bottom:22px;max-width:100%;overflow-x:auto}
+  .seg button{font-size:13.5px;color:var(--ink2);padding:9px 18px;border-radius:999px;white-space:nowrap}
+  .seg button.on{background:var(--accent);color:#fff;font-weight:700}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:22px 24px;margin-bottom:22px;min-width:0}
+  .ch{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+  .ch h2{font-size:15px;font-weight:700;letter-spacing:.06em}
+  .ch h2 span{font-weight:400;color:var(--sub);font-size:12px;margin-left:8px}
+  .kgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:22px}
+  .kgrid.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .kgrid .card{margin:0}
+  .kgrid .k{font-size:12px;color:var(--sub)}
+  .kgrid .v{font-size:26px;font-weight:700;margin-top:4px}
+  .kgrid .d{font-size:12px;color:var(--sub);margin-top:4px}
+  .up{color:var(--up);font-weight:700}.dn{color:var(--down);font-weight:700}.muted{color:var(--sub)}
+  .tw{overflow-x:auto}
+  table.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+  .tbl th{font-size:11.5px;color:var(--sub);font-weight:500;text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+  .tbl td{padding:12px 10px;border-bottom:1px solid var(--line2);vertical-align:middle}
+  .tbl tbody tr:last-child td{border-bottom:0}
+  .tbl .r{text-align:right;white-space:nowrap}
+  .tbl .nw{white-space:nowrap}
+  .tbl td.b{font-weight:700}
+  .tbl tr.click{cursor:pointer}
+  .tbl tr.click:hover{background:#fdf8f7}
+  .tbl tfoot td{font-weight:700;border-top:1px solid var(--line);border-bottom:0}
+  .bar{height:8px;border-radius:999px;background:#efdeda;min-width:2px}
+  .bar.cur{background:var(--accent)}
+  .tag{display:inline-block;font-size:11px;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent-d);font-weight:700;white-space:nowrap}
+  .tag.gray{background:var(--pill);color:var(--sub)}
+  .note{background:var(--tile);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--ink2);line-height:1.85}
+  .note b{color:var(--ink)}
+  .banner{background:var(--accent-soft);color:var(--accent-d);border-radius:12px;padding:12px 16px;font-size:13px;margin-bottom:18px;line-height:1.8}
+  .empty{text-align:center;color:var(--sub);padding:26px 10px;font-size:13.5px;line-height:1.9}
+  .pw{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;background:var(--tile);border:1px solid var(--line2);border-radius:8px;padding:3px 8px}
+  .cover{min-height:70vh;display:flex;align-items:center;justify-content:center}
+  .cover-card{width:100%;max-width:400px;background:var(--paper);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:40px 30px 32px}
+  .cover-card .logo{font-size:24px;font-weight:700;letter-spacing:.08em;text-align:center}
+  .cover-card .cap{font-size:10px;letter-spacing:.3em;color:var(--sub);text-align:center;margin:8px 0 26px}
+  .field{margin-bottom:14px}
+  .field label,.fld label{display:block;font-size:12px;color:var(--sub);margin-bottom:6px;letter-spacing:.04em}
+  .field input,.fld input,.fld textarea{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:11px;background:#fff}
+  .fld textarea{min-height:70px;resize:vertical}
+  .btn-block{width:100%;padding:13px;border-radius:999px;background:var(--accent);color:#fff;font-weight:700;font-size:15px}
+  .err{color:var(--danger);font-size:13px;margin-top:12px;min-height:18px;text-align:center}
+  .form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .form .full{grid-column:1/-1}
+  .check{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);cursor:pointer}
+  .check input{width:16px;height:16px;accent-color:var(--accent)}
+  .modal-bg{position:fixed;inset:0;background:rgba(60,40,36,.3);display:flex;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .modal{background:var(--paper);border-radius:20px;width:100%;max-width:520px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 24px 70px -20px rgba(60,30,20,.35)}
+  .modal-h{padding:20px 24px 10px;display:flex;justify-content:space-between;align-items:center}
+  .modal-h h3{font-size:17px;letter-spacing:.06em}
+  .modal-h .x{font-size:22px;color:var(--sub);width:34px;height:34px;border-radius:50%}
+  .modal-b{padding:8px 24px 18px;overflow-y:auto}
+  .modal-f{padding:14px 24px 20px;display:flex;gap:10px;justify-content:flex-end;border-top:1px solid var(--line2)}
+  .toast{position:fixed;bottom:28px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:var(--ink);color:#fff;padding:12px 22px;border-radius:999px;font-size:13.5px;z-index:90;transition:transform .3s,opacity .3s}
+  .toast.show{transform:translate(-50%,0);opacity:1}
+  @media(max-width:760px){
+    .wrap{padding:18px 14px 60px}
+    .kgrid,.kgrid.four{grid-template-columns:1fr 1fr;gap:10px}
+    .card{padding:16px}
+    .form{grid-template-columns:1fr}
+    .modal-bg{align-items:flex-end;padding:0}
+    .modal{max-width:none;border-radius:20px 20px 0 0}
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="root"><div class="cover muted">読み込み中…</div></div>
+<div id="modalRoot"></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>if(new URLSearchParams(location.search).has('demo'))document.write('<script src="../demo.js"><\/script>');</script>
+<script>
+/* =========================================================
+   運営管理（開発元＝管理者アカウント専用）
+   1店舗 = 1つのSupabaseプロジェクト。店舗ごとの接続先をこの端末に登録して切り替えます。
+   ========================================================= */
+const DEFAULT_STORE={id:'noailles',name:'Noailles',url:'https://jedhznwwspoeoztokqad.supabase.co',
+  key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGh6bnd3c3BvZW96dG9rcWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwNjMzNTQsImV4cCI6MjA5ODYzOTM1NH0.41y_csW3FKEjXRlsXfBydA4TPXwbJBKrHUlOsQNgoFc'};
+const DEMO=!!window.demoClient;
+
+let stores=loadStores(),cur=localStorage.getItem('admin_cur')||stores[0].id;
+if(!stores.find(s=>s.id===cur))cur=stores[0].id;
+const clients={};
+let tab='overview',data=null,showPw={};
+
+/* ---------- 小道具 ---------- */
+const pad=n=>String(n).padStart(2,'0');
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function ymd(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
+function today(){return ymd(new Date());}
+function fmtYmd(s){if(!s)return '—';const [y,m,d]=String(s).slice(0,10).split('-');return `${y}/${m}/${d}`;}
+function fmtDt(s){if(!s)return '—';const d=new Date(s);return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;}
+function yen(n){return '¥'+Math.round(n||0).toLocaleString('ja-JP');}
+function pct(a,b){return b?(a-b)/b*100:null;}
+function pctHtml(v){if(v==null)return '<span class="muted">—</span>';return `<span class="${v>=0?'up':'dn'}">${v>=0?'▲':'▼'} ${Math.abs(v).toFixed(1)}%</span>`;}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400);}
+function modal(inner){document.getElementById('modalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal">${inner}</div></div>`;}
+function closeModal(){document.getElementById('modalRoot').innerHTML='';}
+function copyText(s){(navigator.clipboard?navigator.clipboard.writeText(s):Promise.reject()).then(()=>toast('コピーしました')).catch(()=>prompt('コピーしてください',s));}
+
+/* ---------- 店舗（接続先）の管理 ---------- */
+function loadStores(){
+  try{const a=JSON.parse(localStorage.getItem('admin_stores')||'null');if(Array.isArray(a)&&a.length)return a;}catch(e){}
+  return [DEFAULT_STORE];
+}
+function saveStores(){localStorage.setItem('admin_stores',JSON.stringify(stores));}
+function store(){return stores.find(s=>s.id===cur);}
+function refOf(url){const m=/https:\/\/([^.]+)\./.exec(url||'');return m?m[1]:'x';}
+function client(s){
+  if(DEMO)return window.demoClient;
+  if(!clients[s.id])clients[s.id]=supabase.createClient(s.url,s.key,{auth:{storageKey:'noailles-admin-'+refOf(s.url)}});
+  return clients[s.id];
+}
+
+/* ---------- 起動・ログイン ---------- */
+async function start(){
+  const s=store(),sb=client(s);
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){renderLogin();return;}
+  const r=await sb.rpc('am_i_admin');
+  if(r.error||!r.data){await sb.auth.signOut();renderLogin('この店舗では管理者（開発元）として登録されていません。');return;}
+  await load();
+}
+function renderLogin(msg){
+  const s=store();
+  document.getElementById('root').innerHTML=`${headHtml(true)}
+  <div class="cover"><div class="cover-card"><div class="logo">運営管理</div><div class="cap">${esc(s.name)}</div>
+    <div class="field"><label>管理者のメールアドレス</label><input id="lgEmail" type="email" autocomplete="username"></div>
+    <div class="field"><label>パスワード</label><input id="lgPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"></div>
+    <button class="btn-block" id="lgBtn" onclick="login()">ログイン</button><div class="err" id="lgErr">${esc(msg||'')}</div>
+    <p class="muted" style="font-size:12px;margin-top:10px;text-align:center">店舗ごとに、その店舗の管理者アカウントでログインします</p></div></div>`;
+}
+async function login(){
+  const email=document.getElementById('lgEmail').value.trim(),pass=document.getElementById('lgPass').value,err=document.getElementById('lgErr');
+  if(!email||!pass){err.textContent='メールとパスワードを入力してください';return;}
+  const btn=document.getElementById('lgBtn');btn.disabled=true;btn.textContent='ログイン中…';
+  const {error}=await client(store()).auth.signInWithPassword({email,password:pass});
+  btn.disabled=false;btn.textContent='ログイン';
+  if(error){err.textContent=/Invalid login/i.test(error.message)?'メールまたはパスワードが違います':error.message;return;}
+  await start();
+}
+async function logout(){if(DEMO){location.href=location.pathname;return;}await client(store()).auth.signOut();data=null;renderLogin();}
+function switchStore(id){cur=id;localStorage.setItem('admin_cur',id);data=null;tab='overview';start();}
+
+/* ---------- データ ---------- */
+async function load(){
+  const sb=client(store());
+  const [p,c,s,st,acc,notes]=await Promise.all([
+    sb.from('payments').select('*').order('date',{ascending:false}),
+    sb.from('customers').select('id,name,email,withdrawn_at,created_at'),
+    sb.from('sessions').select('id,date'),
+    sb.from('studio_settings').select('*').eq('id',1).maybeSingle(),
+    sb.rpc('admin_owner_accounts'),
+    sb.from('admin_notes').select('*').order('updated_at',{ascending:false}),
+  ]);
+  data={pays:(p.data||[]).filter(x=>!x.voided_at),allPays:p.data||[],customers:c.data||[],sessions:s.data||[],
+    studio:st&&!st.error?st.data:null,accounts:acc.error?null:(acc.data||[]),notes:notes.error?null:(notes.data||[])};
+  const nm=data.studio&&data.studio.studio_name;
+  if(nm&&store().name!==nm){store().name=nm;saveStores();}
+  render();
+}
+function sumAmt(ps){return ps.reduce((a,p)=>a+(+p.amount||0),0);}
+function inRange(p,a,b){return p.date>=a&&p.date<=b;}
+
+/* ---------- 画面 ---------- */
+function headHtml(loginOnly){
+  return `<div class="head"><div><div class="eyebrow">ADMIN${DEMO?'　・デモ表示':''}</div><h1>運営管理</h1></div>
+    <div class="actions"><select class="plain" onchange="switchStore(this.value)">${stores.map(s=>`<option value="${s.id}" ${s.id===cur?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
+      <button class="btn" onclick="openStoreForm()">＋ 店舗を追加</button>${loginOnly?'':'<button class="btn" onclick="logout()">ログアウト</button>'}</div></div>`;
+}
+function render(){
+  const tabs=[['overview','概要'],['sales','売上'],['accounts','ログイン情報'],['stores','店舗の接続先']];
+  document.getElementById('root').innerHTML=`${headHtml()}
+    <div class="seg">${tabs.map(([k,l])=>`<button class="${tab===k?'on':''}" onclick="tab='${k}';render()">${l}</button>`).join('')}</div>
+    ${({overview:viewOverview,sales:viewSales,accounts:viewAccounts,stores:viewStores}[tab])()}`;
+}
+function viewOverview(){
+  const t=today(),d=new Date();
+  const a=t.slice(0,8)+'01',pm=new Date(d.getFullYear(),d.getMonth()-1,1),last=new Date(d.getFullYear(),d.getMonth(),0).getDate();
+  const pa=ymd(pm),pb=ymd(new Date(pm.getFullYear(),pm.getMonth(),Math.min(d.getDate(),last)));
+  const curAmt=sumAmt(data.pays.filter(p=>inRange(p,a,t))),prvAmt=sumAmt(data.pays.filter(p=>inRange(p,pa,pb)));
+  const lm=pa.slice(0,7),lmAmt=sumAmt(data.pays.filter(p=>p.date.slice(0,7)===lm));
+  const y=t.slice(0,4),py=String(+y-1);
+  const yAmt=sumAmt(data.pays.filter(p=>inRange(p,y+'-01-01',t))),pyAmt=sumAmt(data.pays.filter(p=>inRange(p,py+'-01-01',py+t.slice(4))));
+  const act=data.customers.filter(c=>!c.withdrawn_at).length,wd=data.customers.length-act;
+  const lessons=data.sessions.filter(s=>(s.date||'').slice(0,7)===t.slice(0,7)).length;
+  const lastPay=data.allPays.map(p=>p.created_at||p.date).sort().slice(-1)[0];
+  const lastLogin=data.accounts&&data.accounts.map(x=>x.last_sign_in_at).filter(Boolean).sort().slice(-1)[0];
+  return `${data.accounts===null?`<div class="banner">ログイン情報の確認・メモには、データベースの更新（<b>supabase-migration-7.sql</b>）が必要です。</div>`:''}
+  <div class="kgrid">
+    <section class="card"><div class="k">今月の売上（${+a.slice(5,7)}/1〜${+t.slice(5,7)}/${+t.slice(8)}）</div><div class="v">${yen(curAmt)}</div><div class="d">先月同期 ${yen(prvAmt)}　${pctHtml(pct(curAmt,prvAmt))}</div></section>
+    <section class="card"><div class="k">先月（${+lm.slice(5)}月）</div><div class="v">${yen(lmAmt)}</div><div class="d">会計 ${data.pays.filter(p=>p.date.slice(0,7)===lm).length}件</div></section>
+    <section class="card"><div class="k">今年（1月〜）</div><div class="v">${yen(yAmt)}</div><div class="d">前年同期 ${yen(pyAmt)}　${pctHtml(pct(yAmt,pyAmt))}</div></section>
+  </div>
+  <div class="kgrid four">
+    <section class="card"><div class="k">在籍中の顧客</div><div class="v">${act}<span class="muted" style="font-size:13px;font-weight:500"> 名</span></div><div class="d">退会者 ${wd}名</div></section>
+    <section class="card"><div class="k">お客様アプリの登録</div><div class="v">${data.customers.filter(c=>!c.withdrawn_at&&c.email).length}<span class="muted" style="font-size:13px;font-weight:500"> 名</span></div><div class="d">メール登録済みの顧客</div></section>
+    <section class="card"><div class="k">今月のレッスン</div><div class="v">${lessons}<span class="muted" style="font-size:13px;font-weight:500"> 回</span></div><div class="d">　</div></section>
+    <section class="card"><div class="k">最終の利用</div><div class="v" style="font-size:17px;margin-top:8px">${lastPay?fmtYmd(lastPay):'—'}</div><div class="d">オーナーの最終ログイン ${lastLogin?fmtYmd(lastLogin):'—'}</div></section>
+  </div>`;
+}
+function viewSales(){
+  const t=today(),months=[];
+  for(let i=11;i>=0;i--){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);months.push(ymd(d).slice(0,7));}
+  const rows=months.map(m=>{const ps=data.pays.filter(p=>p.date.slice(0,7)===m);return {m,amt:sumAmt(ps),cnt:ps.length,cust:new Set(ps.map(p=>p.customer_id||p.id)).size};});
+  const max=Math.max(...rows.map(r=>r.amt),1);
+  const prevOf=i=>{if(i>0)return rows[i-1].amt;const d=new Date(+months[0].slice(0,4),+months[0].slice(5)-2,1);const k=ymd(d).slice(0,7);return sumAmt(data.pays.filter(p=>p.date.slice(0,7)===k));};
+  const tot=rows.reduce((a,r)=>({amt:a.amt+r.amt,cnt:a.cnt+r.cnt}),{amt:0,cnt:0});
+  return `<section class="card"><div class="ch"><h2>月別の売上<span>直近12か月・取り消した会計は除く</span></h2><a class="link" onclick="salesCsv()">CSVで書き出す</a></div>
+    <div class="tw"><table class="tbl"><thead><tr><th>月</th><th style="width:34%"></th><th class="r">売上</th><th class="r">前月比</th><th class="r">会計数</th><th class="r">客数</th></tr></thead><tbody>
+      ${rows.map((r,i)=>({r,i})).reverse().map(({r,i})=>`<tr><td class="nw">${r.m.replace('-','/')}</td><td><div class="bar ${r.m===t.slice(0,7)?'cur':''}" style="width:${r.amt/max*100}%"></div></td>
+        <td class="r b">${yen(r.amt)}</td><td class="r">${r.m===t.slice(0,7)?'<span class="muted">集計中</span>':pctHtml(pct(r.amt,prevOf(i)))}</td><td class="r">${r.cnt}</td><td class="r">${r.cust}</td></tr>`).join('')}
+    </tbody><tfoot><tr><td>合計</td><td></td><td class="r">${yen(tot.amt)}</td><td></td><td class="r">${tot.cnt}</td><td></td></tr></tfoot></table></div></section>`;
+}
+function salesCsv(){
+  const months={};data.pays.forEach(p=>{const m=p.date.slice(0,7);months[m]=months[m]||{amt:0,cnt:0};months[m].amt+=+p.amount||0;months[m].cnt++;});
+  const lines=[['月','売上','会計数']].concat(Object.keys(months).sort().map(m=>[m,Math.round(months[m].amt),months[m].cnt]));
+  const csv='﻿'+lines.map(l=>l.join(',')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`売上_${store().name}.csv`;a.click();
+}
+function viewAccounts(){
+  if(data.accounts===null)return `<div class="banner">この画面を使うには、データベースの更新（<b>supabase-migration-7.sql</b>）が必要です。</div>`;
+  return `<section class="card"><div class="ch"><h2>オーナーのログインアカウント<span>${data.accounts.length}件</span></h2></div>
+    ${data.accounts.length?`<div class="tw"><table class="tbl"><thead><tr><th>メールアドレス</th><th>作成日</th><th>最終ログイン</th><th></th></tr></thead><tbody>
+      ${data.accounts.map(a=>`<tr><td class="b">${esc(a.email)}</td><td class="nw">${fmtYmd(a.created_at)}</td><td class="nw">${fmtDt(a.last_sign_in_at)}</td>
+        <td class="r"><button class="btn sm" onclick="openResetPw('${a.user_id}')">パスワードを再設定</button></td></tr>`).join('')}
+    </tbody></table></div>`:'<div class="empty">オーナーのアカウントがありません</div>'}
+    <div class="note" style="margin-top:14px">お店の方がパスワードを忘れたときは、ここから新しいパスワードを設定して伝えてください。お客様のアカウントには使えません。</div></section>
+  <section class="card"><div class="ch"><h2>ログイン情報のメモ<span>${data.notes.length}件</span></h2><button class="btn sm primary" onclick="openNoteForm()">＋ メモを追加</button></div>
+    ${data.notes.length?`<div class="tw"><table class="tbl"><thead><tr><th>名前</th><th>ログインID・メール</th><th>パスワード</th><th>メモ</th><th>更新</th><th></th></tr></thead><tbody>
+      ${data.notes.map(n=>`<tr><td class="b">${esc(n.title)}</td><td>${esc(n.login_email||'—')}</td>
+        <td class="nw">${n.password_memo?`<span class="pw">${showPw[n.id]?esc(n.password_memo):'••••••••'}</span> <a class="link" onclick="showPw['${n.id}']=!showPw['${n.id}'];render()">${showPw[n.id]?'隠す':'表示'}</a> <a class="link" onclick="copyText(${esc(JSON.stringify(n.password_memo))})">コピー</a>`:'—'}</td>
+        <td class="muted">${esc(n.note||'')}</td><td class="nw muted">${fmtYmd(n.updated_at)}</td>
+        <td class="r nw"><a class="link" onclick="openNoteForm('${n.id}')">編集</a>　<a class="link del" onclick="delNote('${n.id}')">削除</a></td></tr>`).join('')}
+    </tbody></table></div>`:'<div class="empty">まだメモはありません</div>'}
+    <div class="note" style="margin-top:14px">このメモは<b>開発元（管理者アカウント）だけ</b>が見られます。お店側のアプリからは見えません。パスワードは画面上では隠して表示し、「表示」を押したときだけ見えます。</div></section>`;
+}
+function genPw(){const c='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';const a=new Uint32Array(10);crypto.getRandomValues(a);return [...a].map(v=>c[v%c.length]).join('');}
+function openResetPw(uid){
+  const a=data.accounts.find(x=>x.user_id===uid);
+  modal(`<div class="modal-h"><h3>パスワードを再設定</h3><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-b"><div class="note" style="margin-bottom:14px">${esc(a.email)} のパスワードを、新しいものに変更します。今のパスワードは使えなくなります。</div>
+      <div class="fld"><label>新しいパスワード（6文字以上）</label><div style="display:flex;gap:8px"><input id="np" value="${genPw()}"><button class="btn sm" onclick="document.getElementById('np').value=genPw()">作り直す</button></div></div>
+      <label class="check" style="margin-top:14px"><input type="checkbox" id="npMemo" checked> ログイン情報のメモにも保存する</label></div>
+    <div class="modal-f"><button class="btn" onclick="closeModal()">キャンセル</button><button class="btn primary" id="npBtn" onclick="resetPw('${uid}')">変更する</button></div>`);
+}
+async function resetPw(uid){
+  const a=data.accounts.find(x=>x.user_id===uid),pw=document.getElementById('np').value.trim();
+  if(pw.length<6){toast('6文字以上にしてください');return;}
+  const btn=document.getElementById('npBtn');btn.disabled=true;
+  const sb=client(store());
+  const {error}=await sb.rpc('admin_set_password',{target:uid,new_password:pw});
+  if(error){toast('エラー: '+error.message);btn.disabled=false;return;}
+  if(document.getElementById('npMemo').checked){
+    const ex=data.notes.find(n=>(n.login_email||'').toLowerCase()===a.email.toLowerCase());
+    const row={title:ex?ex.title:'オーナー（'+store().name+'）',login_email:a.email,password_memo:pw,updated_at:new Date().toISOString()};
+    const r=ex?await sb.from('admin_notes').update(row).eq('id',ex.id):await sb.from('admin_notes').insert(row);
+    if(r.error)toast('メモの保存に失敗: '+r.error.message);
+  }
+  closeModal();await load();toast('パスワードを変更しました');
+}
+function openNoteForm(id){
+  const n=id?data.notes.find(x=>x.id===id):{};
+  modal(`<div class="modal-h"><h3>${id?'メモを編集':'メモを追加'}</h3><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-b"><div class="form">
+      <div class="fld full"><label>名前 *</label><input id="n_title" value="${esc(n.title||'')}" placeholder="例：オーナー（Noailles）"></div>
+      <div class="fld full"><label>ログインID・メール</label><input id="n_email" value="${esc(n.login_email||'')}"></div>
+      <div class="fld full"><label>パスワード</label><input id="n_pw" value="${esc(n.password_memo||'')}" autocomplete="off"></div>
+      <div class="fld full"><label>メモ</label><textarea id="n_note">${esc(n.note||'')}</textarea></div></div></div>
+    <div class="modal-f"><button class="btn" onclick="closeModal()">キャンセル</button><button class="btn primary" onclick="saveNote('${id||''}')">保存する</button></div>`);
+}
+async function saveNote(id){
+  const v=k=>document.getElementById(k).value.trim()||null;
+  const row={title:v('n_title'),login_email:v('n_email'),password_memo:v('n_pw'),note:v('n_note'),updated_at:new Date().toISOString()};
+  if(!row.title){toast('名前を入力してください');return;}
+  const sb=client(store());
+  const {error}=id?await sb.from('admin_notes').update(row).eq('id',id):await sb.from('admin_notes').insert(row);
+  if(error){toast('エラー: '+error.message);return;}closeModal();await load();toast('保存しました');
+}
+async function delNote(id){if(!confirm('このメモを削除しますか？'))return;const {error}=await client(store()).from('admin_notes').delete().eq('id',id);
+  if(error){toast('エラー: '+error.message);return;}await load();toast('削除しました');}
+function viewStores(){
+  return `<section class="card"><div class="ch"><h2>店舗の接続先<span>${stores.length}店舗・この端末に保存</span></h2><button class="btn sm primary" onclick="openStoreForm()">＋ 店舗を追加</button></div>
+    <div class="tw"><table class="tbl"><thead><tr><th>店舗名</th><th>Supabase プロジェクト</th><th></th></tr></thead><tbody>
+      ${stores.map(s=>`<tr class="click" onclick="switchStore('${s.id}')"><td class="b">${esc(s.name)} ${s.id===cur?'<span class="tag">表示中</span>':''}</td><td class="muted">${esc(refOf(s.url))}</td>
+        <td class="r nw" onclick="event.stopPropagation()"><a class="link" onclick="openStoreForm('${s.id}')">編集</a>${stores.length>1?`　<a class="link del" onclick="delStore('${s.id}')">外す</a>`:''}</td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="note" style="margin-top:14px">お店ごとに、別のSupabaseプロジェクトを使います。新しいお店に販売したら、そのお店の Project URL と anon key をここに追加すると、この画面から切り替えて売上やログイン情報を確認できます。各店舗のSupabaseで、あなたの管理者アカウントを <b>super_admins</b> に登録しておいてください。</div></section>`;
+}
+function openStoreForm(id){
+  const s=id?stores.find(x=>x.id===id):{};
+  modal(`<div class="modal-h"><h3>${id?'接続先を編集':'店舗を追加'}</h3><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-b"><div class="form">
+      <div class="fld full"><label>店舗名 *</label><input id="s_name" value="${esc(s.name||'')}"></div>
+      <div class="fld full"><label>Project URL *</label><input id="s_url" value="${esc(s.url||'')}" placeholder="https://xxxx.supabase.co"></div>
+      <div class="fld full"><label>anon public key *</label><input id="s_key" value="${esc(s.key||'')}" placeholder="eyJhbGci..."></div></div></div>
+    <div class="modal-f"><button class="btn" onclick="closeModal()">キャンセル</button><button class="btn primary" onclick="saveStore('${id||''}')">保存する</button></div>`);
+}
+function saveStore(id){
+  const name=document.getElementById('s_name').value.trim(),url=document.getElementById('s_url').value.trim().replace(/\/+$/,''),key=document.getElementById('s_key').value.trim();
+  if(!name||!/^https:\/\/.+\.supabase\.co$/.test(url)||!key){toast('店舗名・URL（https://〜.supabase.co）・キーを入力してください');return;}
+  if(id){Object.assign(stores.find(x=>x.id===id),{name,url,key});delete clients[id];}
+  else{id='s'+Date.now();stores.push({id,name,url,key});}
+  saveStores();closeModal();switchStore(id);
+}
+function delStore(id){if(!confirm('この店舗をリストから外しますか？（店舗のデータは消えません）'))return;
+  stores=stores.filter(s=>s.id!==id);saveStores();if(cur===id)switchStore(stores[0].id);else render();}
+
+/* ---------- デモ表示 ---------- */
+function setupDemo(){
+  const db=window.demoDb;
+  db.admin_notes=[{id:'n1',title:'オーナー（Noailles）',login_email:'owner@noailles.example',password_memo:'Pilates2026!',note:'2026/10 にお店のメールへ変更済み',created_at:today(),updated_at:today()}];
+  const base=window.demoClient.rpc;
+  window.demoClient.rpc=async(n,args)=>{
+    if(n==='am_i_admin')return {data:true,error:null};
+    if(n==='admin_owner_accounts')return {data:[{user_id:'u1',email:'owner@noailles.example',created_at:'2026-07-04T05:55:00Z',last_sign_in_at:new Date().toISOString()}],error:null};
+    if(n==='admin_set_password')return {data:null,error:null};
+    return base(n,args);
+  };
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+if(DEMO)setupDemo();
+start();
+</script>
+</body>
+</html>

@@ -109,6 +109,7 @@
     }
     return b;
   }
+  window.demoDb=db;
   window.demoClient={
     from:query,
     rpc:async n=>({data:n==='am_i_owner'?true:n==='am_i_admin'?false:null,error:null}),

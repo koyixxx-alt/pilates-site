@@ -346,6 +346,17 @@
   </div>
 </div>
 
+<!-- 指紋・Face ID のロック画面 -->
+<div id="lock" class="cover hidden">
+  <div class="cover-card" style="text-align:center">
+    <div class="logo" id="lockLogo">Pilates Studio</div><div class="cap">LOCKED</div>
+    <p class="muted" style="font-size:13px;margin-bottom:22px">Face ID・指紋でロックを解除してください</p>
+    <button class="btn-block" id="lockBtn" onclick="unlock()">ロックを解除</button>
+    <div class="err" id="lockErr"></div>
+    <button class="link" style="margin-top:6px;text-decoration:underline;text-underline-offset:3px" onclick="lockToPassword()">パスワードでログインする</button>
+  </div>
+</div>
+
 <!-- アプリ本体 -->
 <div id="app">
   <div class="layout">
@@ -434,6 +445,9 @@ async function boot(){
   if(!url||!key){show('config');return;}
   try{sb=supabase.createClient(url,key);}catch(e){show('config');return;}
   const {data}=await sb.auth.getSession();
+  const saved=getCreds();
+  /* 指紋・Face ID がオンなら、開くたびにロック画面から */
+  if(bioGet()&&(data.session||(saved&&saved.email&&saved.pass))){showLock();sb.auth.onAuthStateChange((_e,s)=>{if(!s)show('auth');});return;}
   if(data.session){await onAuthed();}
   else{
     const c=getCreds();
@@ -446,7 +460,58 @@ async function boot(){
   }
   sb.auth.onAuthStateChange((_e,s)=>{if(!s)show('auth');});
 }
-function show(id){['boot','config','auth'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));
+/* ---- 指紋・Face ID（この端末の生体認証でロックを解除） ---- */
+const BIO_KEY='owner_bio';
+function bioGet(){try{return JSON.parse(localStorage.getItem(BIO_KEY)||'null');}catch(e){return null;}}
+function b64u(buf){return btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function unb64u(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return Uint8Array.from(atob(s),c=>c.charCodeAt(0));}
+async function bioSupported(){try{return !!(window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());}catch(e){return false;}}
+async function bioRegister(){
+  const email=meUser.email;
+  const cred=await navigator.credentials.create({publicKey:{
+    challenge:crypto.getRandomValues(new Uint8Array(32)),
+    rp:{name:studioName()+'（お店側）',id:location.hostname},
+    user:{id:crypto.getRandomValues(new Uint8Array(16)),name:email,displayName:email},
+    pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+    authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},
+    timeout:60000,attestation:'none'}});
+  localStorage.setItem(BIO_KEY,JSON.stringify({id:b64u(cred.rawId),email}));
+}
+async function bioCheck(){
+  const b=bioGet();if(!b)return false;
+  const r=await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rpId:location.hostname,
+    allowCredentials:[{type:'public-key',id:unb64u(b.id),transports:['internal']}],userVerification:'required',timeout:60000}});
+  return !!r;
+}
+function showLock(){
+  document.getElementById('lockLogo').textContent=localStorage.getItem('studio_name')||'Pilates Studio';
+  document.getElementById('lockErr').textContent='';show('lock');
+  setTimeout(()=>unlock(true),300);   /* 開いたらすぐ確認（端末によってはボタンを押す必要あり） */
+}
+let _unlocking=false;
+async function unlock(auto){
+  if(_unlocking)return;_unlocking=true;
+  const btn=document.getElementById('lockBtn'),err=document.getElementById('lockErr');btn.disabled=true;err.textContent='';
+  try{
+    if(!await bioCheck())throw new Error('cancel');
+    const {data}=await sb.auth.getSession();
+    if(!data.session){const c=getCreds();
+      if(!c){show('auth');return;}
+      const {error}=await sb.auth.signInWithPassword({email:c.email,password:c.pass});
+      if(error){clearCreds();show('auth');document.getElementById('auErr').textContent='もう一度パスワードでログインしてください。';return;}}
+    await onAuthed();
+  }catch(e){if(!auto)err.textContent='解除できませんでした。もう一度お試しください。';}
+  finally{_unlocking=false;btn.disabled=false;}
+}
+async function lockToPassword(){await sb.auth.signOut();clearCreds();show('auth');}
+async function bioToggle(){
+  if(bioGet()){if(!confirm('この端末の Face ID・指紋ログインをオフにしますか？'))return;localStorage.removeItem(BIO_KEY);toast('オフにしました');render();return;}
+  try{await bioRegister();toast('オンにしました。次回から Face ID・指紋で開けます');}
+  catch(e){toast(e&&e.name==='NotAllowedError'?'キャンセルされました':'この端末では設定できませんでした');}
+  render();
+}
+
+function show(id){['boot','config','auth','lock'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));
   document.getElementById('app').style.display=id==='app'?'block':'none';}
 async function doAuth(){
   const email=document.getElementById('auEmail').value.trim(),pass=document.getElementById('auPass').value;
@@ -635,6 +700,7 @@ function render(){
   const views={home:viewHome,reservations:viewReservations,lessons:viewLessons,payments:viewPayments,sales:viewSales,customers:viewCustomers,settings:viewSettings};
   v.innerHTML=(views[ui.view]||viewHome)();
   if(ui.view==='sales')drawSales();
+  if(ui.view==='settings'&&ui.setTab==='account')fillBio();
 }
 function openMore(){
   modal(`<div class="modal-h"><h3>メニュー</h3><button class="x" onclick="closeModal()">×</button></div>
@@ -1391,7 +1457,7 @@ function drawChart(cid,metric){
   x.beginPath();x.strokeStyle='#d98e8a';x.lineWidth=2.2;x.lineJoin='round';d.forEach((v,i)=>i?x.lineTo(X(i),Y(v.y)):x.moveTo(X(i),Y(v.y)));x.stroke();
   const every=Math.ceil(d.length/14);
   d.forEach((v,i)=>{x.beginPath();x.arc(X(i),Y(v.y),3.5,0,7);x.fillStyle='#fff';x.fill();x.lineWidth=2;x.strokeStyle='#d98e8a';x.stroke();
-    if(i%every===0||i===d.length-1){x.textAlign='center';x.fillStyle='#4f3d3a';x.font=`700 11px ${F}`;x.fillText(v.y,X(i),Y(v.y)-10);
+    if((i%every===0&&d.length-1-i>=every*.6)||i===d.length-1){x.textAlign='center';x.fillStyle='#4f3d3a';x.font=`700 11px ${F}`;x.fillText(v.y,X(i),Y(v.y)-10);
       x.fillStyle='#a08a85';x.font=`10px ${F}`;const dd=new Date(v.x+'T00:00:00');x.fillText(`${dd.getMonth()+1}/${dd.getDate()}`,X(i),P.t+ch+16);}});
 }
 
@@ -1490,7 +1556,18 @@ function setAccount(){
       <div><div class="l">権限</div><div class="d">${isAdmin?'管理者（開発元）':'オーナー'}</div></div></div>
     <div class="actions" style="margin-top:18px"><button class="btn" onclick="openEmailForm()">メールアドレスを変更</button><button class="btn" onclick="openPasswordForm()">パスワードを変更</button><button class="btn" onclick="signOut()">ログアウト</button></div>
     <div class="note" style="margin-top:16px">${isAdmin?'この端末は<b>管理者（開発元）</b>としてログインしています。お店がメール・パスワードを変更しても、管理者のアクセスは維持されます。':'お店用のメール・パスワードに変更できます。変更してもデータはそのまま引き継がれます。'}</div>
-    <div style="margin-top:14px"><a class="link" onclick="resetConn()">接続先（Supabase）を変更</a></div></section>`;}
+    <div style="margin-top:14px" class="actions">${isAdmin?`<a class="btn sm" href="admin/">運営管理画面を開く</a>`:''}<a class="link" onclick="resetConn()">接続先（Supabase）を変更</a></div></section>
+  <section class="card"><div class="ch"><h2>Face ID・指紋でログイン</h2></div><div id="bioBox" class="muted" style="font-size:13px">確認中…</div></section>`;}
+async function fillBio(){
+  const el=document.getElementById('bioBox');if(!el)return;
+  if(DEMO){el.textContent='デモ表示では設定できません。';return;}
+  const ok=await bioSupported(),on=!!bioGet();
+  el.innerHTML=ok?`<div style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="color:var(--ink2);font-size:14px">この端末：<b>${on?'オン':'オフ'}</b></div>
+      <button class="btn ${on?'':'primary'}" onclick="bioToggle()">${on?'オフにする':'オンにする'}</button></div>
+    <div class="note" style="margin-top:14px">オンにすると、この端末でアプリを開くたびに Face ID・指紋（パソコンでは Windows Hello など）で本人確認をしてから開きます。パスワードの入力は不要です。スマホ・パソコンなど<b>端末ごとに</b>設定してください。</div>`
+    :'この端末では Face ID・指紋が使えないか、まだ登録されていません。端末の設定で Face ID・指紋を登録すると使えるようになります。';
+}
 function openEmailForm(){
   modal(`<div class="modal-h"><h3>メールアドレスを変更</h3><button class="x" onclick="closeModal()">×</button></div>
     <div class="modal-b"><div class="form"><div class="fld full"><label>新しいメールアドレス</label><input id="ac_email" type="email" placeholder="new@example.com"></div></div>
