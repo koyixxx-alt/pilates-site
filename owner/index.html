@@ -338,7 +338,7 @@
 <div id="auth" class="cover hidden">
   <div class="cover-card">
     <div class="logo" id="authLogo">Pilates Studio</div><div class="cap">OWNER LOGIN</div>
-    <div class="field"><label>メールアドレス</label><input id="auEmail" type="email" autocomplete="email"></div>
+    <div class="field"><label>メールアドレス（管理者は ID）</label><input id="auEmail" type="text" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
     <div class="field"><label>パスワード</label><input id="auPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()"></div>
     <label class="check"><input type="checkbox" id="auRemember" checked> この端末で次回から自動ログイン</label>
     <button class="btn-block" id="auBtn" onclick="doAuth()">ログイン</button>
@@ -514,7 +514,7 @@ async function bioToggle(){
 function show(id){['boot','config','auth','lock'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));
   document.getElementById('app').style.display=id==='app'?'block':'none';}
 async function doAuth(){
-  const email=document.getElementById('auEmail').value.trim(),pass=document.getElementById('auPass').value;
+  const email=loginIdToEmail(document.getElementById('auEmail').value),pass=document.getElementById('auPass').value;
   const errEl=document.getElementById('auErr'),btn=document.getElementById('auBtn');errEl.textContent='';
   if(!email||!pass){errEl.textContent='メールとパスワードを入力してください';return;}
   btn.disabled=true;btn.textContent='ログイン中…';
@@ -543,6 +543,32 @@ async function onAuthed(){
   document.getElementById('demoBadge').innerHTML=DEMO?'<span class="demo-badge">デモ表示</span>':'';
   show('app');
   await loadAll();applyStudio();render();
+  if(isAdmin&&!DEMO){const f=await sb.from('super_admins').select('must_change_pw').eq('user_id',user.id).maybeSingle();
+    if(!f.error&&f.data&&f.data.must_change_pw)openForceChange();}
+}
+/* 管理者IDでのログイン（例: admin）→ ログイン用の内部アドレスに置き換える */
+const ADMIN_ID_DOMAIN='noailles-studio.netlify.app';
+function loginIdToEmail(v){v=(v||'').trim();if(!v||v.includes('@'))return v;const id=v.toLowerCase()==='adomin'?'admin':v.toLowerCase();return `${id}@${ADMIN_ID_DOMAIN}`;}
+/* 管理者の初回ログイン：パスワード変更が終わるまで閉じられない */
+function openForceChange(){
+  window._forcePw=true;
+  document.getElementById('modalRoot').innerHTML=`<div class="modal-bg"><div class="modal">
+    <div class="modal-h"><h3>パスワードの変更</h3></div>
+    <div class="modal-b"><div class="note" style="margin-bottom:14px">はじめてのログインです。あなただけのパスワードに変更してください。</div>
+      <div class="form"><div class="fld full"><label>新しいパスワード（8文字以上）</label><input id="fpw1" type="password" autocomplete="new-password"></div>
+      <div class="fld full"><label>もう一度入力</label><input id="fpw2" type="password" autocomplete="new-password"></div></div></div>
+    <div class="modal-f"><button class="btn primary" id="fpBtn" onclick="forceChange()">変更する</button></div></div></div>`;
+}
+async function forceChange(){
+  const p1=document.getElementById('fpw1').value,p2=document.getElementById('fpw2').value;
+  if(p1.length<8){toast('8文字以上にしてください');return;}if(p1!==p2){toast('確認用が一致しません');return;}
+  const btn=document.getElementById('fpBtn');btn.disabled=true;
+  const {error}=await sb.auth.updateUser({password:p1});
+  if(error){toast(/different from the old/i.test(error.message)?'今のパスワードとは別のものにしてください':'エラー: '+error.message);btn.disabled=false;return;}
+  const m=await sb.rpc('admin_mark_pw_changed');
+  if(m.error){toast('記録に失敗しました: '+m.error.message);btn.disabled=false;return;}
+  const c=getCreds();if(c)saveCreds(c.email,p1);
+  window._forcePw=false;closeModal();toast('パスワードを変更しました');
 }
 async function signOut(){
   if(DEMO){location.href=location.pathname;return;}
@@ -1601,7 +1627,7 @@ function resetConn(){if(!confirm('接続情報を消去して再設定します�
 
 /* ================= モーダル ================= */
 function modal(inner,cls){document.getElementById('modalRoot').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal ${cls||''}">${inner}</div></div>`;}
-function closeModal(){document.getElementById('modalRoot').innerHTML='';}
+function closeModal(){if(window._forcePw)return;document.getElementById('modalRoot').innerHTML='';}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 let _rz;window.addEventListener('resize',()=>{clearTimeout(_rz);_rz=setTimeout(()=>{if(ui.view==='sales'&&!ui.cust)drawSales();if(ui.cust&&ui.custTab==='record')drawChart(ui.cust,ui.metric);},150);});
 boot();

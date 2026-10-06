@@ -160,24 +160,50 @@ async function start(){
   if(!session){renderLogin();return;}
   const r=await sb.rpc('am_i_admin');
   if(r.error||!r.data){await sb.auth.signOut();renderLogin('この店舗では管理者（開発元）として登録されていません。');return;}
+  /* 初回ログイン時は、パスワードの変更を必須にする */
+  if(!DEMO){const f=await sb.from('super_admins').select('must_change_pw').eq('user_id',session.user.id).maybeSingle();
+    if(!f.error&&f.data&&f.data.must_change_pw){renderForceChange();return;}}
   await load();
 }
+function renderForceChange(){
+  document.getElementById('root').innerHTML=`<div class="cover"><div class="cover-card"><div class="logo">パスワードの変更</div><div class="cap">FIRST LOGIN</div>
+    <p class="muted" style="font-size:13px;margin-bottom:18px;text-align:center">はじめてのログインです。<br>あなただけのパスワードに変更してください。</p>
+    <div class="field"><label>新しいパスワード（8文字以上）</label><input id="fpw1" type="password" autocomplete="new-password"></div>
+    <div class="field"><label>もう一度入力</label><input id="fpw2" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')forceChange()"></div>
+    <button class="btn-block" id="fpBtn" onclick="forceChange()">変更して始める</button><div class="err" id="fpErr"></div></div></div>`;
+}
+async function forceChange(){
+  const p1=document.getElementById('fpw1').value,p2=document.getElementById('fpw2').value,err=document.getElementById('fpErr');
+  if(p1.length<8){err.textContent='8文字以上にしてください';return;}
+  if(p1!==p2){err.textContent='確認用が一致しません';return;}
+  const btn=document.getElementById('fpBtn');btn.disabled=true;
+  const sb=client(store());
+  const {error}=await sb.auth.updateUser({password:p1});
+  if(error){err.textContent=/different from the old/i.test(error.message)?'今のパスワードとは別のものにしてください':error.message;btn.disabled=false;return;}
+  const m=await sb.rpc('admin_mark_pw_changed');
+  if(m.error){err.textContent='変更は完了しましたが、記録に失敗しました: '+m.error.message;btn.disabled=false;return;}
+  toast('パスワードを変更しました');await load();
+}
+/* ID（例: admin）で入力されたら、ログイン用の内部アドレスに置き換える */
+const ADMIN_ID_DOMAIN='noailles-studio.netlify.app';
+function loginIdToEmail(v){v=v.trim();if(v.includes('@'))return v;const id=v.toLowerCase()==='adomin'?'admin':v.toLowerCase();return `${id}@${ADMIN_ID_DOMAIN}`;}
 function renderLogin(msg){
   const s=store();
   document.getElementById('root').innerHTML=`${headHtml(true)}
   <div class="cover"><div class="cover-card"><div class="logo">運営管理</div><div class="cap">${esc(s.name)}</div>
-    <div class="field"><label>管理者のメールアドレス</label><input id="lgEmail" type="email" autocomplete="username"></div>
+    <div class="field"><label>ID</label><input id="lgEmail" type="text" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="admin"></div>
     <div class="field"><label>パスワード</label><input id="lgPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()"></div>
     <button class="btn-block" id="lgBtn" onclick="login()">ログイン</button><div class="err" id="lgErr">${esc(msg||'')}</div>
     <p class="muted" style="font-size:12px;margin-top:10px;text-align:center">店舗ごとに、その店舗の管理者アカウントでログインします</p></div></div>`;
 }
 async function login(){
-  const email=document.getElementById('lgEmail').value.trim(),pass=document.getElementById('lgPass').value,err=document.getElementById('lgErr');
-  if(!email||!pass){err.textContent='メールとパスワードを入力してください';return;}
+  const raw=document.getElementById('lgEmail').value.trim(),pass=document.getElementById('lgPass').value,err=document.getElementById('lgErr');
+  if(!raw||!pass){err.textContent='IDとパスワードを入力してください';return;}
+  const email=loginIdToEmail(raw);
   const btn=document.getElementById('lgBtn');btn.disabled=true;btn.textContent='ログイン中…';
   const {error}=await client(store()).auth.signInWithPassword({email,password:pass});
   btn.disabled=false;btn.textContent='ログイン';
-  if(error){err.textContent=/Invalid login/i.test(error.message)?'メールまたはパスワードが違います':error.message;return;}
+  if(error){err.textContent=/Invalid login/i.test(error.message)?'IDまたはパスワードが違います':error.message;return;}
   await start();
 }
 async function logout(){if(DEMO){location.href=location.pathname;return;}await client(store()).auth.signOut();data=null;renderLogin();}
