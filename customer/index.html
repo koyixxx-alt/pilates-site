@@ -99,6 +99,20 @@
   .btn.wide{width:100%;padding:13px}
   .empty{text-align:center;color:var(--sub);padding:22px 10px;font-size:13.5px;line-height:1.9}
   .note{background:var(--tile);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--ink2);line-height:1.85}
+  ::placeholder{color:#d6c8c3;opacity:1}
+  .days{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .days::-webkit-scrollbar{display:none}
+  .day{flex:0 0 58px;border:1px solid var(--line);border-radius:14px;padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:1px;background:#fff}
+  .day .m{font-size:13px;font-weight:700}
+  .day .w{font-size:11px;color:var(--sub)}
+  .day .w.sun{color:var(--danger)}.day .w.sat{color:#7f93bb}
+  .day .n{font-size:11px;color:var(--accent-d)}
+  .day.full{opacity:.45}
+  .day.on{background:var(--accent);border-color:var(--accent)}
+  .day.on .m,.day.on .w,.day.on .n{color:#fff}
+  .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px}
+  .slots button{border:1px solid var(--line);border-radius:12px;padding:11px 0;font-size:14px;font-weight:700;background:#fff;transition:background .15s}
+  .slots button:hover,.slots button:active{background:var(--accent-soft);border-color:var(--accent)}
   .tabbar{position:fixed;left:50%;transform:translateX(-50%);width:calc(100% - 28px);max-width:532px;bottom:calc(14px + env(safe-area-inset-bottom));background:var(--paper);
     border:1px solid var(--line);border-radius:999px;display:flex;padding:5px;z-index:40;box-shadow:0 12px 30px -12px rgba(120,70,60,.35)}
   .tabbar button{flex:1;font-size:13.5px;padding:11px 0;border-radius:999px;color:var(--ink2)}
@@ -261,13 +275,84 @@ async function loadMine(){
 function measures(){return [...store.measurements].sort((a,b)=>a.date.localeCompare(b.date));}
 
 /* ---------- 画面 ---------- */
-const TABS=[['home','ホーム'],['record','記録'],['mypage','マイページ']];
-function go(v){ui.view=v;render();window.scrollTo(0,0);}
+const TABS=[['home','ホーム'],['book','予約'],['record','記録'],['mypage','マイページ']];
+async function go(v){ui.view=v;if(v==='book')await loadBusy();render();window.scrollTo(0,0);}
 function render(){
   document.getElementById('tabbar').innerHTML=TABS.map(([k,l])=>`<button class="${ui.view===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('');
   const v=document.getElementById('view');
-  v.innerHTML=(ui.view==='record'?viewRecord:ui.view==='mypage'?viewMypage:viewHome)();
+  v.innerHTML=({record:viewRecord,mypage:viewMypage,book:viewBook}[ui.view]||viewHome)();
   if(ui.view==='record')drawChart(ui.metric);
+}
+
+/* ---------- 予約 ---------- */
+function bk(){const s=store.studio||{};return {on:!!s.booking_enabled,open:s.open_time||'10:00',close:s.close_time||'21:00',len:+s.lesson_minutes||50,
+  step:+s.slot_step||30,closed:(s.closed_days||[]).map(Number),ahead:+s.book_days_ahead||30,minH:+(s.book_min_hours??3),cancelH:+(s.cancel_min_hours??24)};}
+const toMin=t=>{const [h,m]=String(t).split(':').map(Number);return h*60+(m||0);};
+const fromMin=m=>`${pad(Math.floor(m/60))}:${pad(m%60)}`;
+function addDays(s,n){const d=new Date(s+'T00:00:00');d.setDate(d.getDate()+n);return ymd(d);}
+function myPlans(){return [['training','トレーニング'],['slimming','痩身'],['bust','バスト']].filter(([k])=>me['cat_'+k]);}
+async function loadBusy(){
+  const c=bk();if(!c.on){store.busy=[];return;}
+  const r=await sb.rpc('busy_slots',{d1:today(),d2:addDays(today(),c.ahead)});
+  store.busy=r.error?[]:(r.data||[]);
+}
+function bookDays(){const c=bk(),out=[];for(let i=0;i<=c.ahead;i++){const d=addDays(today(),i);if(!c.closed.includes(new Date(d+'T00:00:00').getDay()))out.push(d);}return out;}
+function freeSlots(date){
+  const c=bk(),now=Date.now(),out=[];
+  const busy=(store.busy||[]).filter(b=>b.date===date).map(b=>[toMin(b.time),toMin(b.time)+(+b.duration||50)]);
+  for(let m=toMin(c.open);m+c.len<=toMin(c.close);m+=c.step){
+    const start=new Date(`${date}T${fromMin(m)}:00`).getTime();
+    if(start<now+c.minH*3600000)continue;
+    if(busy.some(([a,b])=>a<m+c.len&&b>m))continue;
+    out.push(fromMin(m));
+  }
+  return out;
+}
+function canCancel(r){const c=bk();return !!r.id&&new Date(`${r.date}T${r.time||'00:00'}:00`).getTime()-Date.now()>=c.cancelH*3600000;}
+function viewBook(){
+  const c=bk(),s=store.studio||{},mine=store.reservations||[];
+  const tel=s.phone?`<a href="tel:${esc(String(s.phone).replace(/[^0-9+]/g,''))}" class="btn wide" style="display:block;text-align:center;text-decoration:none;margin-top:14px">お電話でのご予約：${esc(s.phone)}</a>`:'';
+  const mineHtml=`<div class="card"><div class="ch"><h2>ご予約中<span>${mine.length}件</span></h2></div>
+    ${mine.length?mine.map(r=>`<div class="rec"><div class="h"><span class="dt">${fmtMd(r.date)} ${esc(r.time||'')}</span><span class="tag">${CATLABEL[r.category]||'レッスン'}</span></div>
+      ${canCancel(r)?`<div style="margin-top:8px"><button class="btn" style="padding:7px 14px;font-size:12px" onclick="cancelRes('${r.id}')">キャンセルする</button></div>`
+        :`<div class="pl" style="margin-top:4px">キャンセルはお店にご連絡ください</div>`}</div>`).join('')
+      :'<div class="muted" style="font-size:13px">現在のご予約はありません</div>'}</div>`;
+  if(!c.on)return `${topBar()}${mineHtml}<div class="card"><div class="ch"><h2>新しく予約する</h2></div><div class="note">アプリからのご予約は、現在受け付けていません。</div>${tel}</div>`;
+  if(me.withdrawn_at)return `${topBar()}<div class="card"><div class="note">退会済みのため、アプリからはご予約いただけません。</div>${tel}</div>`;
+  const days=bookDays();if(!ui.bookDate||!days.includes(ui.bookDate))ui.bookDate=days.find(d=>freeSlots(d).length)||days[0];
+  const plans=myPlans();if(!ui.bookPlan||!plans.some(p=>p[0]===ui.bookPlan))ui.bookPlan=plans[0]?plans[0][0]:'';
+  const slots=ui.bookDate?freeSlots(ui.bookDate):[];
+  return `${topBar()}${mineHtml}
+  <div class="card"><div class="ch"><h2>新しく予約する</h2><span class="muted" style="font-size:12px">1回 ${c.len}分</span></div>
+    ${plans.length>1?`<div class="k" style="margin-bottom:8px">メニュー</div><div class="pills">${plans.map(([k,l])=>`<button class="${ui.bookPlan===k?'on':''}" onclick="ui.bookPlan='${k}';render()">${l}</button>`).join('')}</div>`:''}
+    <div class="k" style="margin:4px 0 8px">日にち</div>
+    <div class="days">${days.map(d=>{const dd=new Date(d+'T00:00:00'),n=freeSlots(d).length,w=dd.getDay();
+      return `<button class="day ${ui.bookDate===d?'on':''} ${n?'':'full'}" onclick="ui.bookDate='${d}';render()"><span class="m">${dd.getMonth()+1}/${dd.getDate()}</span><span class="w ${w===0?'sun':w===6?'sat':''}">${dowJp(d)}</span><span class="n">${n?'○':'×'}</span></button>`;}).join('')}</div>
+    <div class="k" style="margin:16px 0 8px">${ui.bookDate?fmtMd(ui.bookDate):''} の空き時間</div>
+    ${slots.length?`<div class="slots">${slots.map(t=>`<button onclick="confirmBook('${ui.bookDate}','${t}')">${t}</button>`).join('')}</div>`
+      :'<div class="muted" style="font-size:13px">この日は空きがありません。ほかの日をお選びください。</div>'}
+    <div class="muted" style="font-size:12px;margin-top:14px;line-height:1.8">${c.minH?`ご予約は${c.minH}時間前まで、`:''}キャンセルは${c.cancelH}時間前までアプリからできます。</div></div>`;
+}
+function confirmBook(date,time){
+  const c=bk(),end=fromMin(toMin(time)+c.len),plan=(myPlans().find(p=>p[0]===ui.bookPlan)||[])[1];
+  modal(`<div class="modal-h"><h3>ご予約の確認</h3><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-b"><ul class="list"><li><span>日にち</span><span>${fmtMd(date)}</span></li><li><span>時間</span><span>${time}〜${end}</span></li>
+      ${plan?`<li><span>メニュー</span><span>${plan}</span></li>`:''}</ul>
+      <div class="fld" style="margin-top:14px"><label>お店へのメッセージ（任意）</label><input id="bk_note" placeholder="体調のことなど"></div></div>
+    <div class="modal-f"><button class="btn" onclick="closeModal()">戻る</button><button class="btn primary" id="bkBtn" onclick="doBook('${date}','${time}')">予約する</button></div>`);
+}
+async function doBook(date,time){
+  const btn=document.getElementById('bkBtn');btn.disabled=true;btn.textContent='予約中…';
+  const {error}=await sb.rpc('book_reservation',{p_date:date,p_time:time,p_category:ui.bookPlan||null,p_note:document.getElementById('bk_note').value||null});
+  if(error){toast(error.message||'予約できませんでした');btn.disabled=false;btn.textContent='予約する';await loadBusy();render();return;}
+  closeModal();await loadMine();await loadBusy();render();toast('ご予約を受け付けました');
+}
+async function cancelRes(id){
+  const r=(store.reservations||[]).find(x=>x.id===id);
+  if(!confirm(`${fmtMd(r.date)} ${r.time||''} のご予約をキャンセルしますか？`))return;
+  const {error}=await sb.rpc('cancel_my_reservation',{p_id:id});
+  if(error){toast(error.message||'キャンセルできませんでした');return;}
+  await loadMine();await loadBusy();render();toast('キャンセルしました');
 }
 function topBar(){return `<div class="top"><div class="logo">${esc(studioName())}</div><div class="d">${fmtMd(today())}</div></div>`;}
 function viewHome(){
@@ -287,7 +372,8 @@ function viewHome(){
   ${rv?`<div class="card"><div class="k">次回のご予約</div>
     ${next?`<div class="next"><div class="day">${+next.date.slice(8,10)}</div><div class="meta">${fmtMd(next.date)} ${esc(next.time||'')}<br>${CATLABEL[next.category]||'レッスン'}${next.duration?`・${next.duration}分`:''}</div></div>
       ${rv.length>1?`<div class="more">その後のご予約：${rv.slice(1,4).map(r=>`${+r.date.slice(5,7)}/${+r.date.slice(8,10)} ${esc(r.time||'')}`).join('、')}${rv.length>4?' ほか':''}</div>`:''}`
-      :'<div class="muted" style="font-size:13px;margin-top:6px">次回のご予約はまだありません</div>'}</div>`:''}
+      :'<div class="muted" style="font-size:13px;margin-top:6px">次回のご予約はまだありません</div>'}
+    ${bk().on&&!me.withdrawn_at?`<button class="btn primary wide" style="margin-top:14px" onclick="go('book')">予約する</button>`:''}</div>`:''}
   ${stampHtml}
   <div class="card"><div class="k">${last?`前回の計測　${fmtYmd(last.date)}`:'計測'}</div>
     ${last?`<div class="mrow">${['weight','body_fat','waist'].map(k=>{const meta=METRICS.find(m=>m[0]===k),d=diff(k);

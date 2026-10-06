@@ -25,6 +25,7 @@
   input,select,textarea{font:inherit;font-size:15px;color:var(--ink)}
   input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)!important;box-shadow:0 0 0 3px var(--accent-soft)}
   .hidden{display:none!important}
+  ::placeholder{color:#d6c8c3;opacity:1}
 
   /* ---------- ログイン・初期設定 ---------- */
   .cover{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
@@ -95,6 +96,25 @@
   .seg button{font-size:13.5px;color:var(--ink2);padding:9px 18px;border-radius:999px;white-space:nowrap;letter-spacing:.04em;transition:background .15s,color .15s}
   .seg button.on{background:var(--accent);color:#fff;font-weight:700}
   .seg.sm button{padding:6px 14px;font-size:12.5px}
+  .seg.kinds button{padding:11px 22px;font-size:14.5px}
+  .navbadge{display:inline-block;min-width:18px;height:18px;line-height:18px;border-radius:999px;background:var(--danger);color:#fff;font-size:10.5px;font-weight:700;text-align:center;padding:0 5px;margin-left:6px;vertical-align:1px}
+  .notice-list{list-style:none}
+  .notice-list li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line2);font-size:14px}
+  .notice-list li:first-child{border-top:0;padding-top:0}
+  .notice-list .kind{font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--accent);color:#fff;white-space:nowrap}
+  .notice-list .kind.cx{background:var(--pill);color:var(--danger)}
+  .qrbox{display:flex;gap:24px;align-items:center;flex-wrap:wrap}
+  .qrbox .qr{width:180px;height:180px;padding:12px;background:#fff;border:1px solid var(--line);border-radius:16px}
+  .qrbox .qr img,.qrbox .qr svg{width:100%;height:100%;display:block}
+  .daychips{display:flex;gap:6px;flex-wrap:wrap}
+  /* 受付モード（お客様入力） */
+  #kiosk{display:none;min-height:100vh;background:var(--bg)}
+  .kiosk-wrap{max-width:640px;margin:0 auto;padding:34px 20px 60px}
+  .kiosk-wrap .logo{font-size:22px;font-weight:700;letter-spacing:.06em;text-align:center}
+  .kiosk-wrap .cap{font-size:10px;letter-spacing:.3em;color:var(--sub);text-align:center;margin:8px 0 24px}
+  .kiosk-wrap .fld input,.kiosk-wrap .fld select,.kiosk-wrap .fld textarea{font-size:16px;padding:13px 14px}
+  .req{color:var(--danger);font-size:11px;margin-left:4px}
+  .kiosk-exit{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));font-size:11px;color:var(--faint);padding:8px 10px}
   .search{padding:10px 16px;border:1px solid var(--line);border-radius:999px;background:#fff;width:100%;max-width:300px;font-size:14px}
   select.plain{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:13px}
 
@@ -183,6 +203,8 @@
   .rv{display:block;font-size:11px;padding:2px 6px;border-radius:6px;background:var(--accent-soft);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .rv b{font-weight:700;margin-right:3px}
   .rv.bd{background:#fff;border:1px dashed var(--accent);color:var(--accent-d)}
+  .rv.app{box-shadow:inset 3px 0 0 var(--accent)}
+  .rv.blk{background:var(--pill);color:var(--sub)}
   .rv.more{background:none;color:var(--sub)}
   .legend2{margin-top:12px;display:flex;gap:18px;font-size:12px;color:var(--sub)}
   .legend2 span{display:inline-flex;align-items:center;gap:6px}
@@ -338,7 +360,7 @@
 <div id="auth" class="cover hidden">
   <div class="cover-card">
     <div class="logo" id="authLogo">Pilates Studio</div><div class="cap">OWNER LOGIN</div>
-    <div class="field"><label>メールアドレス（管理者は ID）</label><input id="auEmail" type="text" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
+    <div class="field"><label>メールアドレス</label><input id="auEmail" type="text" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
     <div class="field"><label>パスワード</label><input id="auPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()"></div>
     <label class="check"><input type="checkbox" id="auRemember" checked> この端末で次回から自動ログイン</label>
     <button class="btn-block" id="auBtn" onclick="doAuth()">ログイン</button>
@@ -372,6 +394,9 @@
   </div>
   <nav class="tabbar" id="tabbar"></nav>
 </div>
+
+<!-- 受付モード：お客様が入力する画面（ほかの画面は見えない） -->
+<div id="kiosk"></div>
 
 <div id="modalRoot"></div>
 <div class="toast" id="toast"></div>
@@ -542,7 +567,9 @@ async function onAuthed(){
   document.getElementById('whoEmail').textContent=user.email;
   document.getElementById('demoBadge').innerHTML=DEMO?'<span class="demo-badge">デモ表示</span>':'';
   show('app');
-  await loadAll();applyStudio();render();
+  await loadAll();applyStudio();
+  if(localStorage.getItem('kiosk')==='1'){enterKiosk(true);}else render();
+  subscribeReservations();
   if(isAdmin&&!DEMO){const f=await sb.from('super_admins').select('must_change_pw').eq('user_id',user.id).maybeSingle();
     if(!f.error&&f.data&&f.data.must_change_pw)openForceChange();}
 }
@@ -623,6 +650,32 @@ function catLabel(k){return CATLABEL[k]||k||'—';}
 function methodLabel(k){const m=METHODS.find(x=>x[0]===k);return m?m[1]:'—';}
 function custById(id){return store.customers.find(c=>c.id===id)||null;}
 function actives(){return store.customers.filter(c=>!c.withdrawn_at);}
+function nextReservation(cid){const t=today();return store.reservations.filter(r=>r.customer_id===cid&&r.date>=t&&r.status!=='cancelled').sort(byTime)[0]||null;}
+function kanaKey(c){return toKata(((c.last_kana||'')+(c.first_kana||''))||c.kana||c.name||'');}
+/* ひらがな→カタカナ、全角数字→半角 */
+function toKata(s){return String(s||'').replace(/[ぁ-ゖ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+0x60));}
+function toHalfNum(s){return String(s||'').replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0));}
+/* 姓・名を分けて持つ（古いデータは空白で分ける） */
+function nameParts(c){
+  if(c.last_name||c.first_name)return {ln:c.last_name||'',fn:c.first_name||'',lk:c.last_kana||'',fk:c.first_kana||''};
+  const n=String(c.name||'').trim().split(/[\s　]+/),k=String(c.kana||'').trim().split(/[\s　]+/);
+  return {ln:n[0]||'',fn:n.slice(1).join(' '),lk:toKata(k[0]||''),fk:toKata(k.slice(1).join(' '))};
+}
+/* 郵便番号から住所（番地の前まで）を調べる */
+async function zipLookup(zip){
+  zip=toHalfNum(zip).replace(/[^0-9]/g,'');if(zip.length!==7)return null;
+  try{const r=await fetch('https://zipcloud.ibsnet.co.jp/api/search?zipcode='+zip);const j=await r.json();const a=j.results&&j.results[0];return a?a.address1+a.address2+a.address3:null;}catch(e){return null;}
+}
+async function zipFill(zipId,addrId){
+  const z=document.getElementById(zipId),a=document.getElementById(addrId);if(!z||!a)return;
+  const digits=toHalfNum(z.value).replace(/[^0-9]/g,'');
+  if(digits.length!==7)return;
+  z.value=digits.slice(0,3)+'-'+digits.slice(3);
+  const addr=await zipLookup(digits);
+  if(!addr){toast('郵便番号から住所が見つかりませんでした');return;}
+  if(!a.value||a.dataset.auto===a.value||!a.value.startsWith(addr)){a.value=addr;a.dataset.auto=addr;}
+  a.focus();a.setSelectionRange(a.value.length,a.value.length);
+}
 function custCats(c){return CATS.filter(([k])=>c['cat_'+k]).map(([k])=>k);}
 function custMeasures(cid){return store.measurements.filter(m=>m.customer_id===cid).sort((a,b)=>a.date.localeCompare(b.date));}
 function custSessions(cid){return store.sessions.filter(s=>s.customer_id===cid).sort((a,b)=>b.date.localeCompare(a.date));}
@@ -711,12 +764,46 @@ function isBirthday(c,ds){return c&&c.birthday&&String(c.birthday).slice(5,10)==
 const NAV=[['home','ホーム'],'|',['reservations','予約'],['lessons','レッスン'],['payments','会計'],'|',['sales','売上'],['customers','顧客'],['settings','設定']];
 const TABS=[['home','ホーム'],['reservations','予約'],['lessons','レッスン'],['payments','会計'],['more','その他']];
 function renderNav(){
-  const cur=ui.cust?'customers':ui.view;
-  document.getElementById('navMenu').innerHTML=NAV.map(n=>n==='|'?'<div class="sep"></div>':
-    `<button class="${cur===n[0]?'on':''}" onclick="go('${n[0]}')">${n[1]}</button>`).join('');
+  const cur=ui.cust?'customers':ui.view,n=unseenNotices().length;
+  const badge=k=>k==='reservations'&&n?`<span class="navbadge">${n}</span>`:'';
+  document.getElementById('navMenu').innerHTML=NAV.map(x=>x==='|'?'<div class="sep"></div>':
+    `<button class="${cur===x[0]?'on':''}" onclick="go('${x[0]}')">${x[1]}${badge(x[0])}</button>`).join('');
   const more=['sales','customers','settings'].includes(cur);
   document.getElementById('tabbar').innerHTML=TABS.map(([k,l])=>
-    `<button class="${(k==='more'?more:cur===k)?'on':''}" onclick="${k==='more'?'openMore()':`go('${k}')`}">${l}</button>`).join('');
+    `<button class="${(k==='more'?more:cur===k)?'on':''}" onclick="${k==='more'?'openMore()':`go('${k}')`}">${l}${badge(k)}</button>`).join('');
+}
+
+/* ---- お客様アプリからの予約・キャンセルのお知らせ ---- */
+function unseenNotices(){return store.reservations.filter(r=>r.source==='customer'&&!r.seen_at).sort((a,b)=>String(b.cancelled_at||b.created_at||'').localeCompare(String(a.cancelled_at||a.created_at||'')));}
+function noticesCard(){
+  const list=unseenNotices();if(!list.length)return '';
+  return `<section class="card" style="border-color:var(--accent)"><div class="ch"><h2>お客様アプリからのお知らせ<span>${list.length}件</span></h2><button class="btn sm primary" onclick="markSeen()">確認しました</button></div>
+    <ul class="notice-list">${list.map(r=>{const c=custById(r.customer_id),cx=r.status==='cancelled';
+      return `<li><span class="kind ${cx?'cx':''}">${cx?'キャンセル':'新しい予約'}</span>
+        <span><b>${c?esc(c.name):'—'}</b>　${fmtMd(r.date)} ${esc(r.time||'')}${r.category?'・'+catLabel(r.category):''}${r.note?`<br><span class="muted" style="font-size:12px">${esc(r.note)}</span>`:''}</span>
+        ${cx?'':`<a class="link" onclick="openReservationForm('${r.date}','${r.id}')">開く</a>`}</li>`;}).join('')}</ul></section>`;
+}
+async function markSeen(){
+  const list=unseenNotices(),now=new Date().toISOString();
+  for(const r of list){const {error}=await dbWrite('reservations','update',{seen_at:now},r.id);if(error){toast('エラー: '+error.message);return;}}
+  await loadAll();render();toast('確認済みにしました');
+}
+/* 予約が入ったら、アプリを開いている間はすぐにお知らせ */
+function subscribeReservations(){
+  if(DEMO||window._rt)return;
+  window._rt=sb.channel('reservations-watch').on('postgres_changes',{event:'*',schema:'public',table:'reservations'},async p=>{
+    const r=p.new||{};
+    await loadAll();
+    if(kioskOn())return;   /* お客様が入力中は、ほかのお客様の名前を出さない */
+    if(r.source==='customer'&&!r.seen_at){
+      const c=custById(r.customer_id),cx=r.status==='cancelled';
+      const title=cx?'予約のキャンセル':'新しい予約が入りました';
+      const body=`${c?c.name+' さま　':''}${r.date?fmtMd(r.date):''} ${r.time||''}`;
+      toast(title+'：'+body);
+      try{if(window.Notification&&Notification.permission==='granted')new Notification(title,{body,icon:'icon-192.png',tag:'rsv-'+r.id});}catch(e){}
+    }
+    if(!document.querySelector('#modalRoot .modal'))render();else renderNav();
+  }).subscribe();
 }
 function go(v){ui.view=v;ui.cust=null;closeModal();render();window.scrollTo(0,0);}
 function render(){
@@ -749,7 +836,7 @@ function viewHome(){
   const [pa,pb]=prevMonthSame(),prevTotal=sumAmt(livePays().filter(p=>inRange(p,pa,pb)));
   const soon=proteinSoon();
   return `${pageHead(jpDate(t),'ホーム',`<button class="btn" onclick="openReservationForm()">＋ 予約</button><button class="btn primary" onclick="openPayForm()">＋ 会計</button>`)}
-  ${migrBanner()}
+  ${migrBanner()}${noticesCard()}
   <section class="card"><div class="ch"><h2>${mon}月の実施回数<span>${range}</span></h2><a class="link" onclick="go('lessons')">レッスン →</a></div>
     <div class="count4">${CATS.map(([k,l])=>`<div><div class="k">${l}</div><div class="v">${cnt(k)}<small>回</small></div></div>`).join('')}
       <div class="tot"><div class="k">合計</div><div class="v">${ses.length}<small>回</small></div></div></div></section>
@@ -773,6 +860,7 @@ function viewHome(){
   </div></div>`;
 }
 function todayItem(r){
+  if(!r.customer_id)return `<li><div class="t">${esc(r.time||'—')}</div><div><div class="n" onclick="openReservationForm('${r.date}','${r.id}')">${esc(r.note||'予定')}</div><div class="p">お客様なしの予定（アプリの予約は受け付けません）</div></div><div></div></li>`;
   const c=custById(r.customer_id),st=rvState(r),fin=st.checkin&&st.lesson&&st.pay;
   const next=!st.checkin?'checkin':!st.lesson?'lesson':!st.pay?'pay':'';
   const cs=c?couponState(c.id):null;
@@ -785,7 +873,7 @@ function todayItem(r){
 }
 function upcItem(r){const c=custById(r.customer_id);
   return `<li onclick="openReservationForm('${r.date}','${r.id}')"><span>${fmtMd(r.date)}</span><span class="muted">${esc(r.time||'—')}</span>
-    <span>${c?esc(c.name):'—'}</span><span class="pl">${r.category?catLabel(r.category):''}</span></li>`;}
+    <span>${c?esc(c.name):`<span class="muted">${esc(r.note||'予定')}</span>`}${r.source==='customer'?' <span class="tag">アプリ</span>':''}</span><span class="pl">${r.category?catLabel(r.category):''}</span></li>`;}
 async function flowStep(rid,k){
   const r=store.reservations.find(x=>x.id===rid);if(!r)return;const st=rvState(r);
   if(k==='checkin'){
@@ -809,11 +897,12 @@ function viewReservations(){
   if(!ui.calMonth)ui.calMonth=today().slice(0,7);
   const [y,m]=ui.calMonth.split('-').map(Number);
   return `${pageHead('RESERVATIONS','予約',`<button class="btn primary" onclick="openReservationForm()">＋ 予約</button>`)}
+  ${noticesCard()}
   <section class="card">
     <div class="cal-head"><button class="btn sm" onclick="calNav(-1)">‹</button><h2>${y}年${m}月</h2><button class="btn sm" onclick="calNav(1)">›</button>
       <button class="btn sm" onclick="ui.calMonth=today().slice(0,7);render()">今日</button></div>
     ${buildCalendar(ui.calMonth)}
-    <div class="legend2"><span><i></i>予約</span><span><i class="bd"></i>誕生日</span><span class="muted">日付を押すと予約を追加できます</span></div>
+    <div class="legend2" style="flex-wrap:wrap"><span><i></i>予約</span><span><i style="box-shadow:inset 3px 0 0 var(--accent)"></i>アプリからの予約</span><span><i style="background:var(--pill)"></i>予定（受付停止）</span><span><i class="bd"></i>誕生日</span><span class="muted">日付を押すと予約を追加できます</span></div>
   </section>`;
 }
 function buildCalendar(ym){
@@ -828,7 +917,7 @@ function buildCalendar(ym){
     h+=`<div class="cal-cell ${inM?'':'other'} ${ds===td?'today':''}" ${inM?`onclick="openReservationForm('${ds}')"`:''}>
       ${inM?`<span class="dn">${dn}</span>`:''}
       ${bds.map(c=>`<span class="rv bd" onclick="event.stopPropagation();openCustomer('${c.id}')"><b>誕生日</b><span class="nm">${esc(c.name)}</span></span>`).join('')}
-      ${rvs.slice(0,3).map(r=>{const c=custById(r.customer_id);return `<span class="rv" onclick="event.stopPropagation();openReservationForm('${ds}','${r.id}')"><b>${esc(r.time||'')}</b><span class="nm">${c?esc(c.name):'予約'}</span></span>`;}).join('')}
+      ${rvs.slice(0,3).map(r=>{const c=custById(r.customer_id);return `<span class="rv ${!r.customer_id?'blk':''} ${r.source==='customer'?'app':''}" onclick="event.stopPropagation();openReservationForm('${ds}','${r.id}')"><b>${esc(r.time||'')}</b><span class="nm">${c?esc(c.name):esc(r.note||'予定')}</span></span>`;}).join('')}
       ${rvs.length>3?`<span class="rv more">＋${rvs.length-3}件</span>`:''}</div>`;
   }
   return h+'</div>';
@@ -841,16 +930,18 @@ function custOptions(sel,includeWithdrawn){
 function openReservationForm(dateStr,id){
   const r=id?store.reservations.find(x=>x.id===id):null;
   if(!actives().length){toast('先に顧客を登録してください');return;}
-  const selCid=r?r.customer_id:'';const c0=selCid?custById(selCid):null;
+  const selCid=r?(r.customer_id||'__none__'):'';const c0=r&&r.customer_id?custById(r.customer_id):null;
   const st=r?rvState(r):null;
-  modal(`<div class="modal-h"><h3>${r?'予約':'予約を追加'}</h3><button class="x" onclick="closeModal()">×</button></div>
+  if(r&&r.source==='customer'&&!r.seen_at)dbWrite('reservations','update',{seen_at:new Date().toISOString()},r.id).then(()=>{r.seen_at=new Date().toISOString();renderNav();});
+  modal(`<div class="modal-h"><h3>${r?'予約':'予約を追加'}${r&&r.source==='customer'?' <span class="tag">アプリから</span>':''}</h3><button class="x" onclick="closeModal()">×</button></div>
     <div class="modal-b">
-      ${r&&r.date<=today()?`<div class="sec">この予約の流れ</div><div class="flow" style="margin-bottom:6px">
+      ${r&&r.customer_id&&r.date<=today()?`<div class="sec">この予約の流れ</div><div class="flow" style="margin-bottom:6px">
         <button class="step ${st.checkin?'done':'next'}" onclick="flowStep('${r.id}','checkin')">入店</button><span class="arr">›</span>
         <button class="step ${st.lesson?'done':st.checkin?'next':''}" onclick="flowStep('${r.id}','lesson')">${st.lesson?'レッスン':'レッスン記録'}</button><span class="arr">›</span>
         <button class="step ${st.pay?'done':st.checkin&&st.lesson?'next':''}" onclick="flowStep('${r.id}','pay')">会計</button></div>`:''}
       <div class="form" style="margin-top:8px">
-      <div class="fld full"><label>お客様 *</label><select id="rv_cust" onchange="rvCustChange()"><option value="">選んでください</option>${custOptions(selCid,!!r)}</select></div>
+      <div class="fld full"><label>お客様 *</label><select id="rv_cust" onchange="rvCustChange()"><option value="">選んでください</option>
+        <option value="__none__" ${selCid==='__none__'?'selected':''}>（お客様なし・予定／この時間は予約を受け付けない）</option>${custOptions(selCid,!!r)}</select></div>
       <div class="fld"><label>予約日 *</label><input id="rv_date" type="date" value="${r?r.date:(dateStr||today())}"></div>
       <div class="fld"><label>開始時刻</label><input id="rv_time" type="time" step="900" value="${r&&r.time?r.time:'10:00'}"></div>
       <div class="fld"><label>プラン</label><select id="rv_category"><option value="">—</option>${CATS.map(([k,l])=>`<option value="${k}" ${(r?r.category:(c0&&custCats(c0)[0]))===k?'selected':''}>${l}</option>`).join('')}</select></div>
@@ -866,8 +957,9 @@ function rvCustChange(){const c=custById(document.getElementById('rv_cust').valu
 async function saveReservation(id){
   const cid=document.getElementById('rv_cust').value,date=document.getElementById('rv_date').value;
   if(!cid||!date){toast('お客様と予約日を入力してください');return;}
-  const row={customer_id:cid,date,time:document.getElementById('rv_time').value||null,category:document.getElementById('rv_category').value||null,
-    duration:parseInt(document.getElementById('rv_duration').value)||null,note:document.getElementById('rv_note').value.trim()||null};
+  const none=cid==='__none__';
+  const row={customer_id:none?null:cid,date,time:document.getElementById('rv_time').value||null,category:none?null:(document.getElementById('rv_category').value||null),
+    duration:parseInt(document.getElementById('rv_duration').value)||null,note:document.getElementById('rv_note').value.trim()||(none?'予定':null)};
   const btn=document.getElementById('rvbtn');btn.disabled=true;
   const {error}=id?await dbWrite('reservations','update',row,id):await dbWrite('reservations','insert',row);
   if(error){toast('エラー: '+error.message);btn.disabled=false;return;}
@@ -1185,8 +1277,8 @@ function viewSales(){
   const kindName=ui.salesKind?catLabel(ui.salesKind):'';
   const nav=mode==='day'?`<div class="periodnav"><button class="btn sm" onclick="salesShift(-1)">‹</button><b>${ui.salesYm.replace('-','年')}月</b><button class="btn sm" onclick="salesShift(1)">›</button></div>`
     :mode==='month'?`<div class="periodnav"><button class="btn sm" onclick="salesShift(-1)">‹</button><b>${ui.salesY}年</b><button class="btn sm" onclick="salesShift(1)">›</button></div>`:'';
-  return `${pageHead('SALES','売上',`<select class="plain" onchange="ui.salesKind=this.value;render()"><option value="">すべての種別</option>${KINDS.map(([k,l])=>`<option value="${k}" ${ui.salesKind===k?'selected':''}>${l}</option>`).join('')}</select>
-    <div class="seg">${[['day','日別'],['month','月別'],['year','年別']].map(([k,l])=>`<button class="${mode===k?'on':''}" onclick="ui.salesMode='${k}';render()">${l}</button>`).join('')}</div>`)}
+  return `${pageHead('SALES','売上',`<div class="seg">${[['day','日別'],['month','月別'],['year','年別']].map(([k,l])=>`<button class="${mode===k?'on':''}" onclick="ui.salesMode='${k}';render()">${l}</button>`).join('')}</div>`)}
+  <div class="seg kinds" style="margin-bottom:20px">${[['','すべて']].concat(KINDS).map(([k,l])=>`<button class="${ui.salesKind===k?'on':''}" onclick="ui.salesKind='${k}';render()">${l}</button>`).join('')}</div>
   <div class="kgrid">
     <section class="card"><div class="k">今月（${+a.slice(5,7)}/1〜${+b.slice(5,7)}/${+b.slice(8)}）${kindName?'・'+kindName:''}</div><div class="v">${yen(cur)}</div><div class="d">先月同期 ${yen(prv)}　${pctHtml(pct(cur,prv))}</div></section>
     <section class="card"><div class="k">先月（${+lm.slice(5)}月）</div><div class="v">${yen(lmAmt)}</div><div class="d">${+llm.slice(5)}月 ${yen(llmAmt)}　${pctHtml(pct(lmAmt,llmAmt))}</div></section>
@@ -1265,22 +1357,34 @@ function drawSales(){
 
 /* ================= 顧客 ================= */
 function viewCustomers(){
-  const tab=ui.custList,q=(ui.custQ||'').trim().toLowerCase();
-  const list=(tab==='active'?actives():store.customers.filter(c=>c.withdrawn_at))
-    .filter(c=>!q||(c.name+(c.kana||'')).toLowerCase().includes(q));
+  const tab=ui.custList,q=(ui.custQ||'').trim().toLowerCase(),sort=ui.custSort||'kana',t=today(),ym=t.slice(0,7);
+  const info=c=>{const ls=custSessions(c.id)[0];return {c,last:ls?ls.date:null,next:nextReservation(c.id),month:store.sessions.filter(s=>s.customer_id===c.id&&(s.date||'').slice(0,7)===ym).length,spend:totalSpend(c.id),cs:couponState(c.id)};};
+  let list=(tab==='active'?actives():store.customers.filter(c=>c.withdrawn_at))
+    .filter(c=>!q||(c.name+(c.kana||'')+(c.last_kana||'')+(c.first_kana||'')+(c.phone||'')).toLowerCase().includes(q));
   const wcount=store.customers.filter(c=>c.withdrawn_at).length;
-  return `${pageHead('CUSTOMERS','顧客',`<button class="btn primary" onclick="openCustomerForm()">＋ 新規顧客</button>`)}
+  let rows=list.map(info);
+  if(sort==='kana')rows.sort((a,b)=>kanaKey(a.c).localeCompare(kanaKey(b.c),'ja'));
+  if(sort==='recent')rows.sort((a,b)=>String(b.last||'').localeCompare(String(a.last||'')));
+  if(sort==='absent')rows.sort((a,b)=>String(a.last||'0').localeCompare(String(b.last||'0')));
+  if(sort==='spend')rows.sort((a,b)=>b.spend-a.spend);
+  return `${pageHead('CUSTOMERS','顧客',`<button class="btn" onclick="enterKiosk()">お客様に入力してもらう</button><button class="btn primary" onclick="openCustomerForm()">＋ 新規顧客</button>`)}
   <div class="actions" style="margin-bottom:18px;justify-content:space-between">
     <div class="seg"><button class="${tab==='active'?'on':''}" onclick="ui.custList='active';render()">在籍中 ${actives().length}</button>
       <button class="${tab==='withdrawn'?'on':''}" onclick="ui.custList='withdrawn';render()">退会者 ${wcount}</button></div>
-    <input class="search" placeholder="お名前・ふりがなで検索" value="${esc(ui.custQ||'')}" oninput="ui.custQ=this.value;clearTimeout(window._cq);window._cq=setTimeout(()=>{render();const e=document.querySelector('.search');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length);}},250)"></div>
+    <input class="search" placeholder="お名前・フリガナ・電話で検索" value="${esc(ui.custQ||'')}" oninput="ui.custQ=this.value;clearTimeout(window._cq);window._cq=setTimeout(()=>{render();const e=document.querySelector('.search');if(e){e.focus();e.setSelectionRange(e.value.length,e.value.length);}},250)"></div>
   ${tab==='withdrawn'?`<div class="note" style="margin-bottom:18px">退会した方の情報（計測・レッスン記録など）は、<b>退会日から3年間</b>このリストに保管されます。再入会されたときは「復帰」で元に戻せます。
     <b>3年を過ぎると自動で削除</b>されます。会計の記録は、税務上の保存のため、お名前だけ残して売上データとして保管されます。</div>`:''}
   ${migrBanner()}
-  <section class="card">${list.length?(tab==='active'?`<div class="tw"><table class="tbl"><thead><tr><th>お客様</th><th>プラン</th><th>誕生日</th><th>最終レッスン</th><th class="r">累計金額</th><th></th></tr></thead><tbody>
-      ${list.map(c=>{const ls=custSessions(c.id)[0];return `<tr class="click" onclick="openCustomer('${c.id}')"><td><div class="b">${esc(c.name)}</div><div class="muted" style="font-size:12px">${esc(c.kana||'')}</div></td>
+  <section class="card">${list.length?(tab==='active'?`<div class="ch" style="margin-bottom:6px"><h2>在籍中のお客様<span>${rows.length}名</span></h2>
+      <div class="seg sm">${[['kana','フリガナ順'],['recent','最近来た順'],['absent','来ていない順'],['spend','累計金額順']].map(([k,l])=>`<button class="${sort===k?'on':''}" onclick="ui.custSort='${k}';render()">${l}</button>`).join('')}</div></div>
+    <div class="tw"><table class="tbl"><thead><tr><th>お客様</th><th>プラン</th><th>次回予約</th><th>最終レッスン</th><th class="r">今月</th><th class="r">累計金額</th><th>割引券</th><th></th></tr></thead><tbody>
+      ${rows.map(({c,last,next,month,spend,cs})=>{const ago=last?daysBetween(last,t):null;
+        return `<tr class="click" onclick="openCustomer('${c.id}')"><td><div class="b nw">${esc(c.name)}</div><div class="muted nw" style="font-size:12px">${esc(c.kana||'')}</div></td>
         <td><span class="tags">${custCats(c).map(k=>`<span class="tag">${catLabel(k)}</span>`).join('')||'<span class="muted">—</span>'}</span></td>
-        <td class="nw">${c.birthday?fmtYmd(c.birthday):'—'}</td><td class="nw">${ls?fmtYmd(ls.date):'—'}</td><td class="r b">${yen(totalSpend(c.id))}</td>
+        <td class="nw">${next?`${fmtMd(next.date)} ${esc(next.time||'')}`:'<span class="muted">なし</span>'}</td>
+        <td class="nw">${last?`${fmtYmd(last)}<div class="${ago>30&&!next?'hot':'muted'}" style="font-size:12px">${ago===0?'今日':ago+'日前'}${ago>30&&!next?'・ご連絡を':''}</div>`:'<span class="muted">—</span>'}</td>
+        <td class="r">${month}回</td><td class="r b">${yen(spend)}</td>
+        <td class="nw">${cs.avail?`<span class="tag">${cs.avail}枚</span>`:`<span class="muted" style="font-size:12px">${cs.stamps}/${cs.every}</span>`}</td>
         <td class="r" onclick="event.stopPropagation()"><a class="link del" onclick="openWithdraw('${c.id}')">退会</a></td></tr>`;}).join('')}
     </tbody></table></div>`
     :`<div class="tw"><table class="tbl"><thead><tr><th>お客様</th><th>退会日</th><th>保管期限</th><th>残り</th><th>理由</th><th></th></tr></thead><tbody>
@@ -1292,6 +1396,77 @@ function viewCustomers(){
     :`<div class="empty">${q?'該当するお客様がいません':tab==='active'?'まだ顧客が登録されていません':'退会者はいません'}</div>`}</section>`;
 }
 function openCustomer(id,tab){ui.cust=id;ui.custTab=tab||'record';closeModal();render();window.scrollTo(0,0);}
+
+/* ================= 受付モード（お客様に入力してもらう） =================
+   お客様に端末を渡しても、入力画面以外は見えない。終了にはお店のパスワード（または Face ID・指紋）が必要。
+   画面を再読み込みしても受付モードのまま。 */
+function kioskOn(){return localStorage.getItem('kiosk')==='1';}
+function enterKiosk(){
+  localStorage.setItem('kiosk','1');closeModal();
+  document.getElementById('app').style.display='none';
+  document.getElementById('kiosk').style.display='block';
+  kioskForm();window.scrollTo(0,0);
+}
+function kioskForm(){
+  document.getElementById('kiosk').innerHTML=`<div class="kiosk-wrap">
+    <div class="logo">${esc(studioName())}</div><div class="cap">WELCOME</div>
+    <section class="card"><div class="ch"><h2>お客様情報のご記入</h2></div>
+      <p class="muted" style="font-size:13px;margin-bottom:18px">ご来店ありがとうございます。下の項目をご記入ください。<span class="req">必須</span> の項目は必ずご記入ください。</p>
+      <div class="form">${personFields({},'k_',true)}
+        <div class="fld full"><label>目標・お悩み</label><textarea id="k_goal" placeholder="例：姿勢をよくしたい、肩こりを改善したい"></textarea></div>
+        <div class="fld full"><label>お体のことで気をつけてほしいこと</label><textarea id="k_health" placeholder="ケガ・持病・妊娠中など（任意）"></textarea></div></div>
+      <label class="check" style="margin-top:18px;color:var(--ink);align-items:flex-start;line-height:1.7"><input type="checkbox" id="k_agree" style="margin-top:4px;flex-shrink:0">
+        ご記入いただいた情報は、当スタジオでのお客様管理とご連絡のためだけに使用します。内容に同意して送信します。</label>
+      <button class="btn-block" style="margin-top:18px" id="k_btn" onclick="kioskSubmit()">送信する</button>
+      <div class="err" id="k_err"></div></section></div>
+    <button class="kiosk-exit" onclick="kioskUnlock()">スタッフ用</button>`;
+}
+async function kioskSubmit(){
+  const p=readPerson('k_'),err=document.getElementById('k_err');err.textContent='';
+  const miss=[[p.last_name,'姓'],[p.first_name,'名'],[p.last_kana,'セイ'],[p.first_kana,'メイ'],[p.phone,'電話番号']].filter(x=>!x[0]).map(x=>x[1]);
+  if(miss.length){err.textContent=miss.join('・')+' をご記入ください';return;}
+  if(p.email&&!/.+@.+\..+/.test(p.email)){err.textContent='メールアドレスの形をご確認ください';return;}
+  if(!document.getElementById('k_agree').checked){err.textContent='内容をご確認のうえ、同意にチェックしてください';return;}
+  const health=document.getElementById('k_health').value.trim();
+  const row=Object.assign(p,{owner_id:meUser.id,joined:today(),goal:document.getElementById('k_goal').value.trim()||null,
+    notes:health?'【お客様記入】'+health:null});
+  const btn=document.getElementById('k_btn');btn.disabled=true;btn.textContent='送信中…';
+  const res=await dbWrite('customers','insert',row);
+  if(res.error){err.textContent='送信できませんでした。スタッフにお声がけください。';btn.disabled=false;btn.textContent='送信する';return;}
+  localStorage.setItem('kiosk_last',res.data&&res.data.id||'');
+  document.getElementById('kiosk').innerHTML=`<div class="kiosk-wrap" style="padding-top:18vh;text-align:center">
+    <div class="logo">${esc(studioName())}</div><div class="cap">THANK YOU</div>
+    <section class="card"><div style="font-size:18px;font-weight:700;margin:6px 0 10px">ご記入ありがとうございました</div>
+      <p class="muted" style="font-size:14px;line-height:1.9">この端末をスタッフにお渡しください。</p>
+      <button class="btn" style="margin-top:20px" onclick="kioskForm()">次の方が入力する</button></section></div>
+    <button class="kiosk-exit" onclick="kioskUnlock()">スタッフ用</button>`;
+  window.scrollTo(0,0);
+}
+async function kioskUnlock(){
+  if(DEMO){exitKiosk();return;}
+  if(bioGet()){try{if(await bioCheck()){exitKiosk();return;}}catch(e){}}
+  modal(`<div class="modal-h"><h3>スタッフの確認</h3><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-b"><div class="fld"><label>お店のパスワード</label><input id="ku_pw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')kioskCheckPw()"></div></div>
+    <div class="modal-f"><button class="btn" onclick="closeModal()">戻る</button><button class="btn primary" id="ku_btn" onclick="kioskCheckPw()">受付モードを終了</button></div>`);
+  setTimeout(()=>{const e=document.getElementById('ku_pw');if(e)e.focus();},60);
+}
+async function kioskCheckPw(){
+  const pw=document.getElementById('ku_pw').value;if(!pw)return;
+  const btn=document.getElementById('ku_btn');btn.disabled=true;
+  const {error}=await sb.auth.signInWithPassword({email:meUser.email,password:pw});
+  btn.disabled=false;
+  if(error){toast('パスワードが違います');return;}
+  closeModal();exitKiosk();
+}
+async function exitKiosk(){
+  const last=localStorage.getItem('kiosk_last');
+  localStorage.removeItem('kiosk');localStorage.removeItem('kiosk_last');
+  document.getElementById('kiosk').style.display='none';document.getElementById('kiosk').innerHTML='';
+  document.getElementById('app').style.display='block';
+  await loadAll();
+  if(last&&custById(last)){openCustomer(last);openCustomerForm(last);toast('プランと料金を設定してください');}
+  else go('customers');
+}
 function viewCustomer(cid){
   const c=custById(cid);if(!c)return `<div class="empty">見つかりません</div>`;
   const ms=custMeasures(cid),first=ms[0],last=ms[ms.length-1],cs=couponState(cid);
@@ -1309,7 +1484,7 @@ function viewCustomer(cid){
       ${c.phone?`<div><div class="l">電話</div><div class="d">${esc(c.phone)}</div></div>`:''}
       ${c.joined?`<div><div class="l">入会日</div><div class="d">${fmtYmd(c.joined)}</div></div>`:''}
       ${c.email?`<div><div class="l">お客様アプリのメール</div><div class="d">${esc(c.email)}</div></div>`:''}
-      ${c.address?`<div style="grid-column:span 2"><div class="l">住所</div><div class="d">${esc(c.address)}</div></div>`:''}
+      ${c.address?`<div style="grid-column:span 2"><div class="l">住所</div><div class="d">${c.postal_code?'〒'+esc(c.postal_code)+' ':''}${esc(c.address)}</div></div>`:''}
       <div><div class="l">累計金額</div><div class="d">${yen(totalSpend(cid))}</div></div>
       <div><div class="l">プロテイン スタンプ</div><div class="d" style="margin-top:3px">${stampsHtml(cs)}${cs.avail?` <span class="tag">割引券 ${cs.avail}枚</span>`:''}</div></div>
     </div>
@@ -1389,18 +1564,35 @@ async function saveProtein(cid){
 async function delProtein(id){if(!confirm('この記録を削除しますか？'))return;const {error}=await sb.from('proteins').delete().eq('id',id);
   if(error){toast('エラー: '+error.message);return;}await loadAll();render();toast('削除しました');}
 
+/* 氏名・フリガナ・連絡先・住所の入力欄（お店の入力と、お客様の入力で共通） */
+function personFields(c,p,forCustomer){
+  const n=nameParts(c),R=forCustomer?'<span class="req">必須</span>':' *';
+  return `<div class="fld"><label>姓${R}</label><input id="${p}ln" value="${esc(n.ln)}" autocomplete="family-name" placeholder="山田"></div>
+    <div class="fld"><label>名${R}</label><input id="${p}fn" value="${esc(n.fn)}" autocomplete="given-name" placeholder="花子"></div>
+    <div class="fld"><label>セイ（フリガナ）${forCustomer?R:''}</label><input id="${p}lk" value="${esc(n.lk)}" placeholder="ヤマダ" onblur="this.value=toKata(this.value)"></div>
+    <div class="fld"><label>メイ（フリガナ）${forCustomer?R:''}</label><input id="${p}fk" value="${esc(n.fk)}" placeholder="ハナコ" onblur="this.value=toKata(this.value)"></div>
+    <div class="fld"><label>電話番号${forCustomer?R:''}</label><input id="${p}phone" type="tel" inputmode="tel" autocomplete="tel" value="${esc(c.phone||'')}" placeholder="090-0000-0000"></div>
+    <div class="fld"><label>生年月日</label><input id="${p}birthday" type="date" value="${esc(c.birthday||'')}"></div>
+    <div class="fld"><label>郵便番号</label><input id="${p}zip" inputmode="numeric" autocomplete="postal-code" value="${esc(c.postal_code||'')}" placeholder="1500001" oninput="zipFill('${p}zip','${p}addr')"></div>
+    <div class="fld"><label>性別</label><select id="${p}gender"><option value="">—</option>${['女性','男性','その他','回答しない'].map(g=>`<option ${c.gender===g?'selected':''}>${g}</option>`).join('')}</select></div>
+    <div class="fld full"><label>住所<span class="muted" style="font-size:11px;margin-left:6px">郵便番号を入れると番地の前まで自動で入ります</span></label><input id="${p}addr" autocomplete="street-address" value="${esc(c.address||'')}" placeholder="東京都渋谷区神宮前 1-2-3 ○○マンション101"></div>
+    <div class="fld full"><label>メールアドレス${forCustomer?'<span class="muted" style="font-size:11px;margin-left:6px">お客様アプリで記録や予約を見るときに使います</span>':'（お客様アプリ用）'}</label><input id="${p}email" type="email" autocomplete="email" value="${esc(c.email||'')}" placeholder="name@example.com"></div>`;
+}
+function readPerson(p){
+  const g=k=>{const e=document.getElementById(p+k);return e?e.value.trim():'';};
+  const ln=g('ln'),fn=g('fn'),lk=toKata(g('lk')),fk=toKata(g('fk'));
+  const zip=toHalfNum(g('zip')).replace(/[^0-9]/g,'');
+  return {last_name:ln||null,first_name:fn||null,last_kana:lk||null,first_kana:fk||null,
+    name:[ln,fn].filter(Boolean).join(' '),kana:[lk,fk].filter(Boolean).join(' ')||null,
+    phone:g('phone')||null,birthday:g('birthday')||null,postal_code:zip?zip.slice(0,3)+'-'+zip.slice(3):null,
+    gender:g('gender')||null,address:g('addr')||null,email:g('email')||null};
+}
 function openCustomerForm(id){
   const c=id?custById(id):{};const edit=!!id;
   modal(`<div class="modal-h"><h3>${edit?'顧客情報を編集':'新規顧客'}</h3><button class="x" onclick="closeModal()">×</button></div>
     <div class="modal-b"><div class="form">
-      <div class="fld"><label>お名前 *</label><input id="f_name" value="${esc(c.name||'')}"></div>
-      <div class="fld"><label>ふりがな</label><input id="f_kana" value="${esc(c.kana||'')}"></div>
-      <div class="fld"><label>電話番号</label><input id="f_phone" type="tel" value="${esc(c.phone||'')}"></div>
-      <div class="fld"><label>誕生日</label><input id="f_birthday" type="date" value="${esc(c.birthday||'')}"></div>
-      <div class="fld full"><label>住所</label><input id="f_address" value="${esc(c.address||'')}"></div>
-      <div class="fld"><label>性別</label><select id="f_gender"><option value="">—</option>${['女性','男性','その他'].map(g=>`<option ${c.gender===g?'selected':''}>${g}</option>`).join('')}</select></div>
+      ${personFields(c,'f_',false)}
       <div class="fld"><label>入会日</label><input id="f_joined" type="date" value="${esc(c.joined||today())}"></div>
-      <div class="fld full"><label>お客様アプリのメール</label><input id="f_email" type="email" value="${esc(c.email||'')}" placeholder="お客様が新規登録に使うメール"></div>
       <div class="fld full"><label>契約プランと料金</label>
         ${CATS.map(([k,l])=>`<div style="display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center;margin-bottom:8px">
           <label class="check" style="margin:0;color:var(--ink)"><input type="checkbox" id="f_cat_${k}" ${c['cat_'+k]?'checked':''}> ${l}</label>
@@ -1409,16 +1601,16 @@ function openCustomerForm(id){
       <div class="fld full"><label>メモ（お店のみ）</label><textarea id="f_notes">${esc(c.notes||'')}</textarea></div>
     </div></div>
     <div class="modal-f"><button class="btn" onclick="closeModal()">キャンセル</button><button class="btn primary" id="cbtn" onclick="saveCustomer('${id||''}')">${edit?'更新する':'登録する'}</button></div>`);
-  setTimeout(()=>{const e=document.getElementById('f_name');if(e&&!edit)e.focus();},60);
+  setTimeout(()=>{const e=document.getElementById('f_ln');if(e&&!edit)e.focus();},60);
 }
 async function saveCustomer(id){
   const g=k=>document.getElementById('f_'+k).value.trim(),chk=k=>document.getElementById('f_cat_'+k).checked;
   const price=k=>{const v=document.getElementById('f_price_'+k).value;return v===''?null:parseFloat(v);};
-  const name=g('name');if(!name){toast('お名前を入力してください');return;}
-  const row={name,kana:g('kana')||null,email:g('email')||null,phone:g('phone')||null,birthday:g('birthday')||null,address:g('address')||null,
-    gender:g('gender')||null,joined:g('joined')||null,goal:g('goal')||null,notes:g('notes')||null,
+  const person=readPerson('f_');
+  if(!person.last_name){toast('姓を入力してください');return;}
+  const row=Object.assign(person,{joined:g('joined')||null,goal:g('goal')||null,notes:g('notes')||null,
     cat_training:chk('training'),cat_slimming:chk('slimming'),cat_bust:chk('bust'),
-    price_training:price('training'),price_slimming:price('slimming'),price_bust:price('bust')};
+    price_training:price('training'),price_slimming:price('slimming'),price_bust:price('bust')});
   const btn=document.getElementById('cbtn');btn.disabled=true;
   let res,cid=id;
   if(id)res=await dbWrite('customers','update',row,id);
@@ -1490,11 +1682,11 @@ function drawChart(cid,metric){
 /* ================= 設定 ================= */
 function viewSettings(){
   const t=ui.setTab;
-  const tabs=[['studio','店舗情報'],['products','商品'],['coupon','割引券'],['app','お客様アプリ'],['account','アカウント']];
+  const tabs=[['studio','店舗情報'],['booking','予約受付'],['products','商品'],['coupon','割引券'],['app','お客様アプリ'],['account','アカウント']];
   return `${pageHead('SETTINGS','設定','')}
   <div class="seg" style="margin-bottom:22px">${tabs.map(([k,l])=>`<button class="${t===k?'on':''}" onclick="ui.setTab='${k}';render()">${l}</button>`).join('')}</div>
   ${migrBanner()}
-  ${({studio:setStudio,products:setProducts,coupon:setCoupon,app:setApp,account:setAccount}[t]||setStudio)()}`;
+  ${({studio:setStudio,booking:setBooking,products:setProducts,coupon:setCoupon,app:setApp,account:setAccount}[t]||setStudio)()}`;
 }
 function setStudio(){const s=S();
   return `<section class="card"><div class="form" style="max-width:760px">
@@ -1567,9 +1759,70 @@ async function saveCoupon(){
   const {error}=await dbWrite('studio_settings','update',{coupon_every:every,coupon_amount:amount,updated_at:new Date().toISOString()},1);
   if(error){toast('エラー: '+error.message);return;}await loadAll();render();toast('保存しました');
 }
+/* ---- 予約受付（お客様アプリからの予約） ---- */
+function migr9(){return !!(store.settings&&('booking_enabled' in store.settings));}
+function setBooking(){
+  const s=S(),closed=new Set((s.closed_days||[]).map(Number));
+  if(!migr9())return `<div class="banner">この設定には、データベースの更新（<b>supabase-migration-9.sql</b>）が必要です。</div>`;
+  const perm=window.Notification?Notification.permission:'unsupported';
+  return `<section class="card"><div class="ch"><h2>お客様アプリからの予約</h2>
+      <label class="check" style="margin:0;color:var(--ink);font-size:14px"><span class="switch"><input type="checkbox" id="bk_on" ${s.booking_enabled?'checked':''}><span></span></span> 受け付ける</label></div>
+    <div class="form" style="max-width:760px">
+      <div class="fld"><label>受付開始の時刻</label><input id="bk_open" type="time" step="900" value="${esc(s.open_time||'10:00')}"></div>
+      <div class="fld"><label>最終レッスンの終了時刻</label><input id="bk_close" type="time" step="900" value="${esc(s.close_time||'21:00')}"></div>
+      <div class="fld"><label>1回のレッスン時間</label><div class="unit"><input id="bk_len" type="number" min="10" step="5" value="${s.lesson_minutes||50}"><span class="u">分</span></div></div>
+      <div class="fld"><label>予約できる時刻の間隔</label><select id="bk_step">${[15,30,60].map(n=>`<option value="${n}" ${(+s.slot_step||30)===n?'selected':''}>${n}分ごと</option>`).join('')}</select></div>
+      <div class="fld full"><label>定休日（予約を受け付けない曜日）</label><div class="daychips">${['日','月','火','水','木','金','土'].map((d,i)=>`<button type="button" class="chip ${closed.has(i)?'on':''}" data-day="${i}" onclick="this.classList.toggle('on')">${d}</button>`).join('')}</div></div>
+      <div class="fld"><label>何日先まで予約できるか</label><div class="unit"><input id="bk_ahead" type="number" min="1" value="${s.book_days_ahead??30}"><span class="u">日先</span></div></div>
+      <div class="fld"><label>何時間前まで予約できるか</label><div class="unit"><input id="bk_min" type="number" min="0" value="${s.book_min_hours??3}"><span class="u">時間前</span></div></div>
+      <div class="fld"><label>何時間前までキャンセルできるか</label><div class="unit"><input id="bk_cancel" type="number" min="0" value="${s.cancel_min_hours??24}"><span class="u">時間前</span></div></div></div>
+    <div class="note" style="margin-top:16px">お客様は、空いている時間だけを選んで予約できます。同じ時間に2件入ることはありません。お休みや私用の時間は、予約画面で「お客様なし・予定」を入れておくと、その時間は予約できなくなります。</div>
+    <div style="margin-top:18px"><button class="btn primary" onclick="saveBooking()">保存する</button></div></section>
+  <section class="card"><div class="ch"><h2>予約のお知らせ</h2></div>
+    <div class="note">お客様アプリから予約やキャンセルがあると、<b>ホーム</b>と<b>予約</b>に「お知らせ」が出て、メニューの「予約」に件数が付きます。<br>
+      このアプリを開いている間は、すぐに画面へお知らせします。下のボタンで許可すると、別の画面を見ているときも端末の通知でお知らせします。</div>
+    <div class="actions" style="margin-top:14px">${perm==='granted'?'<span class="tag">この端末の通知：オン</span>':perm==='unsupported'?'<span class="muted" style="font-size:13px">この端末のブラウザは通知に対応していません（ホーム画面に追加すると使える場合があります）</span>':`<button class="btn" onclick="askNotify()">この端末で通知を受け取る</button>`}</div></section>`;
+}
+async function saveBooking(){
+  const v=id=>document.getElementById(id).value;
+  const open=v('bk_open'),close=v('bk_close');
+  if(!open||!close||open>=close){toast('時刻を確認してください');return;}
+  const row={booking_enabled:document.getElementById('bk_on').checked,open_time:open,close_time:close,
+    lesson_minutes:Math.max(10,parseInt(v('bk_len'))||50),slot_step:parseInt(v('bk_step'))||30,
+    closed_days:[...document.querySelectorAll('.daychips .chip.on')].map(b=>+b.dataset.day),
+    book_days_ahead:Math.max(1,parseInt(v('bk_ahead'))||30),book_min_hours:Math.max(0,parseInt(v('bk_min'))||0),
+    cancel_min_hours:Math.max(0,parseInt(v('bk_cancel'))||0),updated_at:new Date().toISOString()};
+  const {error}=await dbWrite('studio_settings','update',row,1);
+  if(error){toast('エラー: '+error.message);return;}
+  await loadAll();render();toast(row.booking_enabled?'保存しました（アプリからの予約：受付中）':'保存しました（アプリからの予約：停止中）');
+}
+async function askNotify(){
+  try{const p=await Notification.requestPermission();toast(p==='granted'?'通知をオンにしました':'通知は許可されませんでした');}catch(e){toast('この端末では通知を使えません');}
+  render();
+}
+/* ---- お客様アプリのQRコード ---- */
+let _qrLib=null;
+function loadQrLib(){if(window.qrcode)return Promise.resolve();if(_qrLib)return _qrLib;
+  _qrLib=new Promise((ok,ng)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';s.onload=ok;s.onerror=ng;document.head.appendChild(s);});return _qrLib;}
+async function drawQr(){
+  const box=document.getElementById('qrBox');if(!box)return;
+  try{await loadQrLib();const q=qrcode(0,'M');q.addData(CUSTOMER_APP_URL);q.make();box.innerHTML=q.createSvgTag({cellSize:4,margin:2,scalable:true});}
+  catch(e){box.innerHTML='<div class="muted" style="font-size:12px">QRコードを表示できませんでした</div>';}
+}
+async function saveQr(){
+  await loadQrLib();const q=qrcode(0,'M');q.addData(CUSTOMER_APP_URL);q.make();
+  const n=q.getModuleCount(),cell=16,m=4,size=(n+m*2)*cell,cv=document.createElement('canvas');cv.width=cv.height=size;
+  const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,size,size);x.fillStyle='#000';
+  for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))x.fillRect((c+m)*cell,(r+m)*cell,cell,cell);
+  const a=document.createElement('a');a.href=cv.toDataURL('image/png');a.download=`お客様アプリQR_${studioName()}.png`;a.click();
+}
 function setApp(){
+  setTimeout(drawQr,0);
   return `<section class="card"><div class="ch"><h2>お客様アプリのURL</h2></div>
-    <div class="copyrow"><code>${CUSTOMER_APP_URL}</code><button class="btn sm" onclick="copyText('${CUSTOMER_APP_URL}')">コピー</button></div>
+    <div class="qrbox"><div class="qr" id="qrBox"></div>
+      <div><div class="copyrow"><code>${CUSTOMER_APP_URL}</code><button class="btn sm" onclick="copyText('${CUSTOMER_APP_URL}')">コピー</button></div>
+        <p class="muted" style="font-size:13px;margin:12px 0">お客様のスマホのカメラでQRコードを読み取ると、お客様アプリが開きます。</p>
+        <div class="actions"><button class="btn sm" onclick="saveQr()">QRコードを画像で保存</button></div></div></div>
     <div class="sec">お客様へのご案内</div>
     <div class="note">① 顧客を登録するときに、<b>お客様のメールアドレス</b>を入力します<br>
       ② お客様に上のURLを開いてもらい、<b>同じメールアドレス</b>で新規登録してもらいます<br>

@@ -10,7 +10,8 @@
   let seq=1;const uid=()=>'demo-'+(seq++);
 
   const db={profiles:[{id:'demo-owner',role:'owner'}],customers:[],measurements:[],sessions:[],payments:[],proteins:[],reservations:[],products:[],plan_prices:[],
-    studio_settings:[{id:1,studio_name:'Noailles',phone:'03-0000-0000',address:'東京都〇〇区〇〇 1-2-3',hours:'10:00〜21:00',holiday:'水曜日',coupon_every:3,coupon_amount:1000}]};
+    studio_settings:[{id:1,studio_name:'Noailles',phone:'03-0000-0000',address:'東京都〇〇区〇〇 1-2-3',hours:'10:00〜21:00',holiday:'水曜日',coupon_every:3,coupon_amount:1000,
+      booking_enabled:true,open_time:'10:00',close_time:'21:00',lesson_minutes:50,slot_step:30,closed_days:[3],book_days_ahead:30,book_min_hours:3,cancel_min_hours:24}]};
   const P1={id:uid(),name:'ソイプロテイン 500g',kind:'protein',price:4800,volume_g:500,serving_g:20,active:true,created_at:day(-500)};
   const P2={id:uid(),name:'ホエイプロテイン 500g',kind:'protein',price:5200,volume_g:500,serving_g:25,active:true,created_at:day(-499)};
   const B1={id:uid(),name:'美容ドリンク',kind:'other',price:3200,active:true,created_at:day(-498)};
@@ -70,7 +71,11 @@
   db.payments.push({id:uid(),customer_id:C[0].id,customer_name:C[0].name,date:day(0),amount:12000,category:'training',categories:['training'],
     items:[{kind:'training',name:'トレーニング（契約料金）',price:12000,qty:1,product_id:null}],subtotal:12000,adjust_amount:0,coupons_used:0,coupon_discount:0,method:'card',reservation_id:r1.id,created_at:day(0)+'T11:00:00'});
   [[1,3,'11:00','training'],[2,0,'10:00','training'],[2,4,'15:00','slimming'],[4,5,'13:00','bust'],[6,1,'19:00','slimming'],[7,6,'10:30','training']]
-    .forEach(([o,ci,t,k])=>db.reservations.push({id:uid(),customer_id:C[ci].id,date:day(o),time:t,category:k,duration:50,status:'booked',checked_in_at:null}));
+    .forEach(([o,ci,t,k])=>db.reservations.push({id:uid(),customer_id:C[ci].id,date:day(o),time:t,category:k,duration:50,status:'booked',checked_in_at:null,source:'owner',seen_at:day(0)}));
+  /* お客様アプリから入った予約・キャンセル（未確認） */
+  db.reservations.push({id:uid(),customer_id:C[4].id,date:day(3),time:'18:30',category:'slimming',duration:50,status:'booked',source:'customer',seen_at:null,note:'初めての時間帯です',created_at:new Date().toISOString()});
+  db.reservations.push({id:uid(),customer_id:C[7].id,date:day(5),time:'11:00',category:'training',duration:50,status:'cancelled',source:'customer',seen_at:null,cancelled_by:'customer',cancelled_at:new Date().toISOString()});
+  db.reservations.push({id:uid(),customer_id:null,date:day(1),time:'14:00',duration:120,status:'booked',source:'owner',seen_at:day(0),note:'研修（予約停止）'});
   /* 中村 彩さんはスタンプ3個で割引券あり */
   const c2=C[2];const extra=db.payments.filter(p=>p.customer_id===c2.id).slice(-3);
   extra.forEach(p=>{if(!p.items.some(l=>l.kind==='protein')){p.items.push({kind:'protein',name:P1.name,price:P1.price,qty:1,product_id:P1.id});p.subtotal+=P1.price;p.amount+=P1.price;p.categories=[...new Set(p.items.map(l=>l.kind))];
