@@ -113,9 +113,7 @@
   .kiosk-wrap .logo{font-size:22px;font-weight:700;letter-spacing:.06em;text-align:center}
   .kiosk-wrap .cap{font-size:10px;letter-spacing:.3em;color:var(--sub);text-align:center;margin:8px 0 24px}
   .kiosk-wrap .fld input,.kiosk-wrap .fld select,.kiosk-wrap .fld textarea{font-size:16px;padding:13px 14px}
-  .req{color:var(--danger);font-size:11px;margin-left:4px}
-  .kiosk-exit{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom));font-size:11px;color:var(--faint);padding:8px 10px}
-  .search{padding:10px 16px;border:1px solid var(--line);border-radius:999px;background:#fff;width:100%;max-width:300px;font-size:14px}
+  .req{color:var(--danger);font-size:11px;margin-left:4px}  .search{padding:10px 16px;border:1px solid var(--line);border-radius:999px;background:#fff;width:100%;max-width:300px;font-size:14px}
   select.plain{padding:8px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:13px}
 
   /* ---------- 表 ---------- */
@@ -1398,8 +1396,8 @@ function viewCustomers(){
 function openCustomer(id,tab){ui.cust=id;ui.custTab=tab||'record';closeModal();render();window.scrollTo(0,0);}
 
 /* ================= 受付モード（お客様に入力してもらう） =================
-   お客様に端末を渡しても、入力画面以外は見えない。終了にはお店のパスワード（または Face ID・指紋）が必要。
-   画面を再読み込みしても受付モードのまま。 */
+   入力中は入力画面以外は見えない（再読み込みしても受付モードのまま）。
+   送信するとお礼を表示してホームへ戻る。途中でやめるときは「キャンセル」。 */
 function kioskOn(){return localStorage.getItem('kiosk')==='1';}
 function enterKiosk(){
   localStorage.setItem('kiosk','1');closeModal();
@@ -1410,7 +1408,7 @@ function enterKiosk(){
 function kioskForm(){
   document.getElementById('kiosk').innerHTML=`<div class="kiosk-wrap">
     <div class="logo">${esc(studioName())}</div><div class="cap">WELCOME</div>
-    <section class="card"><div class="ch"><h2>お客様情報のご記入</h2></div>
+    <section class="card"><div class="ch"><h2>お客様情報のご記入</h2><button class="btn sm" onclick="kioskCancel()">キャンセル</button></div>
       <p class="muted" style="font-size:13px;margin-bottom:18px">ご来店ありがとうございます。下の項目をご記入ください。<span class="req">必須</span> の項目は必ずご記入ください。</p>
       <div class="form">${personFields({},'k_',true)}
         <div class="fld full"><label>目標・お悩み</label><textarea id="k_goal" placeholder="例：姿勢をよくしたい、肩こりを改善したい"></textarea></div>
@@ -1418,8 +1416,16 @@ function kioskForm(){
       <label class="check" style="margin-top:18px;color:var(--ink);align-items:flex-start;line-height:1.7"><input type="checkbox" id="k_agree" style="margin-top:4px;flex-shrink:0">
         ご記入いただいた情報は、当スタジオでのお客様管理とご連絡のためだけに使用します。内容に同意して送信します。</label>
       <button class="btn-block" style="margin-top:18px" id="k_btn" onclick="kioskSubmit()">送信する</button>
-      <div class="err" id="k_err"></div></section></div>
-    <button class="kiosk-exit" onclick="kioskUnlock()">スタッフ用</button>`;
+      <div class="err" id="k_err"></div>
+      <div style="text-align:center;margin-top:4px"><button class="link" style="font-size:13px;text-decoration:underline;text-underline-offset:3px" onclick="kioskCancel()">入力をやめる</button></div></section></div>`;
+}
+/* 入力の途中でやめる → 確認してホームへ */
+function kioskCancel(){
+  const typed=[...document.querySelectorAll('#kiosk input:not([type=checkbox]),#kiosk textarea,#kiosk select')].some(e=>e.value.trim());
+  if(!typed){exitKiosk();return;}
+  modal(`<div class="modal-h"><h3>入力をやめますか？</h3><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-b"><div class="note">入力した内容は保存されません。</div></div>
+    <div class="modal-f"><button class="btn" onclick="closeModal()">入力を続ける</button><button class="btn primary" onclick="closeModal();exitKiosk()">やめてホームへ戻る</button></div>`);
 }
 async function kioskSubmit(){
   const p=readPerson('k_'),err=document.getElementById('k_err');err.textContent='';
@@ -1433,39 +1439,20 @@ async function kioskSubmit(){
   const btn=document.getElementById('k_btn');btn.disabled=true;btn.textContent='送信中…';
   const res=await dbWrite('customers','insert',row);
   if(res.error){err.textContent='送信できませんでした。スタッフにお声がけください。';btn.disabled=false;btn.textContent='送信する';return;}
-  localStorage.setItem('kiosk_last',res.data&&res.data.id||'');
+  /* お礼を表示して、少ししたら受付モードを終了してホームへ */
   document.getElementById('kiosk').innerHTML=`<div class="kiosk-wrap" style="padding-top:18vh;text-align:center">
     <div class="logo">${esc(studioName())}</div><div class="cap">THANK YOU</div>
     <section class="card"><div style="font-size:18px;font-weight:700;margin:6px 0 10px">ご記入ありがとうございました</div>
-      <p class="muted" style="font-size:14px;line-height:1.9">この端末をスタッフにお渡しください。</p>
-      <button class="btn" style="margin-top:20px" onclick="kioskForm()">次の方が入力する</button></section></div>
-    <button class="kiosk-exit" onclick="kioskUnlock()">スタッフ用</button>`;
+      <p class="muted" style="font-size:14px;line-height:1.9">この端末をスタッフにお渡しください。</p></section></div>`;
   window.scrollTo(0,0);
+  setTimeout(()=>exitKiosk(p.name),2500);
 }
-async function kioskUnlock(){
-  if(DEMO){exitKiosk();return;}
-  if(bioGet()){try{if(await bioCheck()){exitKiosk();return;}}catch(e){}}
-  modal(`<div class="modal-h"><h3>スタッフの確認</h3><button class="x" onclick="closeModal()">×</button></div>
-    <div class="modal-b"><div class="fld"><label>お店のパスワード</label><input id="ku_pw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')kioskCheckPw()"></div></div>
-    <div class="modal-f"><button class="btn" onclick="closeModal()">戻る</button><button class="btn primary" id="ku_btn" onclick="kioskCheckPw()">受付モードを終了</button></div>`);
-  setTimeout(()=>{const e=document.getElementById('ku_pw');if(e)e.focus();},60);
-}
-async function kioskCheckPw(){
-  const pw=document.getElementById('ku_pw').value;if(!pw)return;
-  const btn=document.getElementById('ku_btn');btn.disabled=true;
-  const {error}=await sb.auth.signInWithPassword({email:meUser.email,password:pw});
-  btn.disabled=false;
-  if(error){toast('パスワードが違います');return;}
-  closeModal();exitKiosk();
-}
-async function exitKiosk(){
-  const last=localStorage.getItem('kiosk_last');
-  localStorage.removeItem('kiosk');localStorage.removeItem('kiosk_last');
+async function exitKiosk(newName){
+  localStorage.removeItem('kiosk');
   document.getElementById('kiosk').style.display='none';document.getElementById('kiosk').innerHTML='';
   document.getElementById('app').style.display='block';
-  await loadAll();
-  if(last&&custById(last)){openCustomer(last);openCustomerForm(last);toast('プランと料金を設定してください');}
-  else go('customers');
+  await loadAll();go('home');
+  if(newName)toast(`${newName} さまを登録しました。顧客からプランと料金を設定してください`);
 }
 function viewCustomer(cid){
   const c=custById(cid);if(!c)return `<div class="empty">見つかりません</div>`;
