@@ -1,0 +1,7 @@
+# Netlify の設定（2つのサイトで共通）
+# 変更があったほうのサイトだけ公開し直す（Netlifyのクレジット節約）
+#   noailles        → customer/ に変更があったときだけ
+#   noailles-studio → owner/    に変更があったときだけ
+# ※ このコマンドが「成功（0）」を返すと公開をスキップします
+[build]
+  ignore = "if [ \"$SITE_NAME\" = \"noailles\" ]; then DIR=customer; else DIR=owner; fi; git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- $DIR"
