@@ -10,6 +10,8 @@
   let seq=1;const uid=()=>'demo-'+(seq++);
 
   const db={profiles:[{id:'demo-owner',role:'owner'}],customers:[],measurements:[],sessions:[],payments:[],proteins:[],reservations:[],products:[],plan_prices:[],
+    announcements:[{id:'demo-a1',title:'年末年始のお休みのお知らせ',body:'12月29日〜1月3日はお休みをいただきます。',published:true,pinned:true,starts_on:null,ends_on:null,created_at:day(-2)+'T10:00:00'},
+      {id:'demo-a2',title:'お友だち紹介キャンペーン',body:'ご紹介でお二人とも次回レッスン1,000円引き。',published:true,pinned:false,starts_on:null,ends_on:day(30),created_at:day(-10)+'T10:00:00'}],
     studio_settings:[{id:1,studio_name:'Noailles',phone:'03-0000-0000',address:'東京都〇〇区〇〇 1-2-3',hours:'10:00〜21:00',holiday:'水曜日',coupon_every:3,coupon_amount:1000,
       booking_enabled:true,open_time:'10:00',close_time:'21:00',lesson_minutes:50,slot_step:30,closed_days:[3],book_days_ahead:30,book_min_hours:3,cancel_min_hours:24}]};
   const P1={id:uid(),name:'ソイプロテイン 500g',kind:'protein',price:4800,volume_g:500,serving_g:20,active:true,created_at:day(-500)};
@@ -41,7 +43,7 @@
     let n=0;
     for(let o=-418+i*25;o<=end;o+=6+Math.floor(rnd()*4)){
       const date=day(o),k=cats[n%cats.length];n++;
-      db.sessions.push({id:uid(),customer_id:c.id,date,category:k,menu:pick(['マットピラティス','骨盤調整','体幹トレーニング','ストレッチ']),duration:50,note:null,created_at:date+'T12:00:00'});
+      db.sessions.push({id:uid(),customer_id:c.id,date,category:k,menu:pick(['マットピラティス','骨盤調整','体幹トレーニング','ストレッチ']),duration:50,note:null,homework:o>-8?'寝る前にキャットストレッチを10回':null,created_at:date+'T12:00:00'});
       if(n%3===1){w-=.25+rnd()*.3;f-=.15+rnd()*.2;waist-=.2;
         db.measurements.push({id:uid(),customer_id:c.id,date,weight:+w.toFixed(1),body_fat:+f.toFixed(1),waist:+waist.toFixed(1),hip:null,thigh:null,arm:null,note:null,created_at:date});}
       const lines=[{kind:k,name:({training:'トレーニング',slimming:'痩身',bust:'バスト'})[k]+'（契約料金）',price:PRICE[k],qty:1,product_id:null}];

@@ -646,7 +646,7 @@ async function signOut(){
 
 /* ================= データ読み込み ================= */
 async function loadAll(){
-  const [c,m,s,p,pr,rv,pd,pp,st]=await Promise.all([
+  const [c,m,s,p,pr,rv,pd,pp,st,an]=await Promise.all([
     sb.from('customers').select('*').order('created_at',{ascending:true}),
     sb.from('measurements').select('*').order('date',{ascending:true}),
     sb.from('sessions').select('*').order('date',{ascending:false}),
@@ -656,7 +656,9 @@ async function loadAll(){
     sb.from('products').select('*').order('created_at',{ascending:true}),
     sb.from('plan_prices').select('*').order('effective_date',{ascending:false}),
     sb.from('studio_settings').select('*').eq('id',1).maybeSingle(),
+    sb.from('announcements').select('*').order('created_at',{ascending:false}),
   ]);
+  store.news=an.error?null:(an.data||[]);   /* null＝SQL⑪がまだ */
   store.customers=c.data||[];store.measurements=m.data||[];store.sessions=s.data||[];
   store.payments=p.data||[];store.proteins=pr.data||[];store.reservations=rv.data||[];
   store.products=pd.data||[];store.planPrices=pp.data||[];
@@ -1026,7 +1028,7 @@ function viewLessons(){
         return `<tr class="click" onclick="openCustomer('${s.customer_id}','record')"><td class="nw">${fmtYmd(s.date)}</td><td class="nw b">${c?esc(c.name):'—'}</td>
           <td>${s.category?`<span class="tag">${catLabel(s.category)}</span>`:'—'}</td><td>${esc(s.menu||'')}</td>
           <td class="r">${m&&m.weight!=null?m.weight+'kg':'—'}</td><td class="r">${m&&m.body_fat!=null?m.body_fat+'%':'—'}</td><td class="r">${m&&m.waist!=null?m.waist+'cm':'—'}</td>
-          <td class="muted">${esc(s.note||'')}</td></tr>`;}).join('')}
+          <td class="muted">${esc(s.note||'')}${s.homework?`<div style="margin-top:4px"><span class="tag gray">セルフケア</span> ${esc(s.homework)}</div>`:''}</td></tr>`;}).join('')}
     </tbody></table></div>`:`<div class="empty">${q?'該当するレッスン記録がありません':'まだレッスン記録がありません'}</div>`}</section>`;
 }
 function openLessonForm(cid,opts){
@@ -1044,6 +1046,7 @@ function openLessonForm(cid,opts){
       <div class="fld full"><label>メニュー</label><input id="s_menu" placeholder="例：マットピラティス／骨盤調整"></div>
       <div class="fld"><label>時間</label><div class="unit"><input id="s_duration" type="number" value="${r&&r.duration?r.duration:50}"><span class="u">分</span></div></div>
       <div class="fld full"><label>記録・アドバイス</label><textarea id="s_note" placeholder="実施内容・次回への課題など"></textarea></div>
+      <div class="fld full"><label>次回までのセルフケア（お客様アプリのホームに表示されます）</label><textarea id="s_homework" placeholder="例：寝る前にキャットストレッチを10回"></textarea></div>
     </div>
     <div class="sec">計測（測った項目だけ入力）${last?`<span class="muted" style="letter-spacing:0;margin-left:8px">前回 ${fmtYmd(last.date)}：${last.weight!=null?last.weight+'kg':''} ${last.body_fat!=null?last.body_fat+'%':''}</span>`:''}</div>
     <div class="form">${METRICS.map(([k,l,u])=>`<div class="fld"><label>${l}</label><div class="unit"><input id="m_${k}" type="number" step="0.1" inputmode="decimal"><span class="u">${u}</span></div></div>`).join('')}</div>
@@ -1057,7 +1060,7 @@ async function saveLesson(cid,rid){
   if(!cid||!date){toast('お客様と実施日を入力してください');return;}
   const cat=document.getElementById('s_category').value;
   const row={customer_id:cid,date,category:cat,menu:document.getElementById('s_menu').value.trim()||catLabel(cat),
-    duration:parseInt(document.getElementById('s_duration').value)||null,note:document.getElementById('s_note').value.trim()||null,reservation_id:rid||null};
+    duration:parseInt(document.getElementById('s_duration').value)||null,note:document.getElementById('s_note').value.trim()||null,homework:document.getElementById('s_homework').value.trim()||null,reservation_id:rid||null};
   const mv={};let any=false;
   METRICS.forEach(([k])=>{const v=document.getElementById('m_'+k).value;mv[k]=v===''?null:parseFloat(v);if(v!=='')any=true;});
   const btn=document.getElementById('sbtn');btn.disabled=true;btn.textContent='保存中…';
@@ -1517,6 +1520,7 @@ function viewCustomer(cid){
       ${c.email?`<div><div class="l">お客様アプリのメール</div><div class="d">${esc(c.email)}</div></div>`:''}
       ${c.address?`<div style="grid-column:span 2"><div class="l">住所</div><div class="d">${c.postal_code?'〒'+esc(c.postal_code)+' ':''}${esc(c.address)}</div></div>`:''}
       <div><div class="l">累計金額</div><div class="d">${yen(totalSpend(cid))}</div></div>
+      ${c.goal_weight!=null||c.goal_body_fat!=null?`<div><div class="l">目標</div><div class="d">${[c.goal_weight!=null?c.goal_weight+'kg':'',c.goal_body_fat!=null?c.goal_body_fat+'%':''].filter(Boolean).join('・')}</div></div>`:''}
       <div><div class="l">プロテイン スタンプ</div><div class="d" style="margin-top:3px">${stampsHtml(cs)}${cs.avail?` <span class="tag">割引券 ${cs.avail}枚</span>`:''}</div></div>
     </div>
     ${c.goal?`<div class="note" style="margin-top:16px"><b>目標</b>　${esc(c.goal)}</div>`:''}
@@ -1543,7 +1547,7 @@ function recordPanel(c){
     ${rows.length?`<div class="tw"><table class="tbl"><thead><tr><th>日付</th><th>プラン</th><th>メニュー</th>${METRICS.map(m=>`<th class="r">${m[1]}</th>`).join('')}<th>記録・アドバイス</th><th></th></tr></thead><tbody>
       ${rows.map(({date,s,m})=>`<tr><td class="nw">${fmtYmd(date)}</td><td>${s&&s.category?`<span class="tag">${catLabel(s.category)}</span>`:s?'—':'<span class="tag gray">計測のみ</span>'}</td>
         <td>${s?esc(s.menu||''):''}</td>${METRICS.map(([k])=>`<td class="r">${m&&m[k]!=null?m[k]:'<span class="muted">—</span>'}</td>`).join('')}
-        <td class="muted">${esc((s&&s.note)||(m&&m.note)||'')}</td><td class="r"><a class="link del" onclick="delRecord('${s?s.id:''}','${m?m.id:''}')">削除</a></td></tr>`).join('')}
+        <td class="muted">${esc((s&&s.note)||(m&&m.note)||'')}${s&&s.homework?`<div style="margin-top:4px"><span class="tag gray">セルフケア</span> ${esc(s.homework)}</div>`:''}</td><td class="r"><a class="link del" onclick="delRecord('${s?s.id:''}','${m?m.id:''}')">削除</a></td></tr>`).join('')}
     </tbody></table></div>`:'<div class="empty">まだ記録がありません</div>'}</section>`;
 }
 function billingPanel(c){
@@ -1629,6 +1633,8 @@ function openCustomerForm(id){
           <label class="check" style="margin:0;color:var(--ink)"><input type="checkbox" id="f_cat_${k}" ${c['cat_'+k]?'checked':''}> ${l}</label>
           <div class="unit"><input id="f_price_${k}" type="number" inputmode="numeric" value="${id?(currentPlanPrice(c,k)??''):''}" placeholder="料金"><span class="u">円</span></div></div>`).join('')}</div>
       <div class="fld full"><label>目標</label><input id="f_goal" value="${esc(c.goal||'')}" placeholder="例：姿勢改善・体幹強化"></div>
+      <div class="fld"><label>目標体重</label><div class="unit"><input id="f_goal_weight" type="number" step="0.1" inputmode="decimal" value="${c.goal_weight??''}"><span class="u">kg</span></div></div>
+      <div class="fld"><label>目標体脂肪率</label><div class="unit"><input id="f_goal_body_fat" type="number" step="0.1" inputmode="decimal" value="${c.goal_body_fat??''}"><span class="u">%</span></div></div>
       <div class="fld full"><label>メモ（お店のみ）</label><textarea id="f_notes">${esc(c.notes||'')}</textarea></div>
     </div></div>
     <div class="modal-f"><button class="btn" onclick="closeModal()">キャンセル</button><button class="btn primary" id="cbtn" onclick="saveCustomer('${id||''}')">${edit?'更新する':'登録する'}</button></div>`);
@@ -1639,7 +1645,8 @@ async function saveCustomer(id){
   const price=k=>{const v=document.getElementById('f_price_'+k).value;return v===''?null:parseFloat(v);};
   const person=readPerson('f_');
   if(!person.last_name){toast('姓を入力してください');return;}
-  const row=Object.assign(person,{joined:g('joined')||null,goal:g('goal')||null,notes:g('notes')||null,
+  const num=k=>{const v=g(k);return v===''?null:parseFloat(v);};
+  const row=Object.assign(person,{joined:g('joined')||null,goal:g('goal')||null,notes:g('notes')||null,goal_weight:num('goal_weight'),goal_body_fat:num('goal_body_fat'),
     cat_training:chk('training'),cat_slimming:chk('slimming'),cat_bust:chk('bust'),
     price_training:price('training'),price_slimming:price('slimming'),price_bust:price('bust')});
   const btn=document.getElementById('cbtn');btn.disabled=true;
@@ -1713,11 +1720,11 @@ function drawChart(cid,metric){
 /* ================= 設定 ================= */
 function viewSettings(){
   const t=ui.setTab;
-  const tabs=[['studio','店舗情報'],['booking','予約受付'],['products','商品'],['coupon','割引券'],['app','お客様アプリ'],['account','アカウント']];
+  const tabs=[['studio','店舗情報'],['booking','予約受付'],['news','お知らせ'],['products','商品'],['coupon','割引券'],['app','お客様アプリ'],['account','アカウント']];
   return `${pageHead('SETTINGS','設定','')}
   <div class="seg" style="margin-bottom:22px">${tabs.map(([k,l])=>`<button class="${t===k?'on':''}" onclick="ui.setTab='${k}';render()">${l}</button>`).join('')}</div>
   ${migrBanner()}
-  ${({studio:setStudio,booking:setBooking,products:setProducts,coupon:setCoupon,app:setApp,account:setAccount}[t]||setStudio)()}`;
+  ${({studio:setStudio,booking:setBooking,news:setNews,products:setProducts,coupon:setCoupon,app:setApp,account:setAccount}[t]||setStudio)()}`;
 }
 function setStudio(){const s=S();
   return `<section class="card"><div class="form" style="max-width:760px">
@@ -1790,6 +1797,47 @@ async function saveCoupon(){
   const {error}=await dbWrite('studio_settings','update',{coupon_every:every,coupon_amount:amount,updated_at:new Date().toISOString()},1);
   if(error){toast('エラー: '+error.message);return;}await loadAll();render();toast('保存しました');
 }
+/* ---- スタジオからのお知らせ（お客様アプリのホームに表示） ---- */
+function newsState(a){const t=today();if(a.published===false)return ['非公開','gray'];if(a.starts_on&&a.starts_on>t)return [`${fmtMd(a.starts_on)}から表示`,'gray'];
+  if(a.ends_on&&a.ends_on<t)return ['表示終了','gray'];return ['表示中',''];}
+function setNews(){
+  if(store.news===null)return `<div class="banner">この機能には、データベースの更新（<b>supabase-migration-11.sql</b>）が必要です。</div>`;
+  const list=store.news;
+  return `<section class="card"><div class="ch"><h2>お知らせ<span>${list.length}件・お客様アプリのホームに表示されます</span></h2><button class="btn sm primary" onclick="openNewsForm()">＋ お知らせを追加</button></div>
+    ${list.length?`<div class="tw"><table class="tbl"><thead><tr><th>タイトル</th><th>状態</th><th>表示期間</th><th>作成日</th><th></th></tr></thead><tbody>
+      ${list.map(a=>{const [st,cls]=newsState(a);return `<tr class="click" onclick="openNewsForm('${a.id}')"><td class="b">${a.pinned?'<span class="tag">大切</span> ':''}${esc(a.title)}</td>
+        <td class="nw"><span class="tag ${cls}">${st}</span></td><td class="nw muted">${a.starts_on?fmtYmd(a.starts_on):'すぐ'}〜${a.ends_on?fmtYmd(a.ends_on):''}</td>
+        <td class="nw muted">${fmtYmd(String(a.created_at).slice(0,10))}</td>
+        <td class="r" onclick="event.stopPropagation()"><a class="link del" onclick="delNews('${a.id}')">削除</a></td></tr>`;}).join('')}
+    </tbody></table></div>`:'<div class="empty">まだお知らせはありません<br><span style="font-size:12px">休業日やキャンペーンなどを、会員さんのアプリに表示できます</span></div>'}
+    <div class="note" style="margin-top:14px">「大切なお知らせ」にすると、お客様アプリのホームのいちばん上に表示されます。それ以外は、ホームの「お知らせ」欄にタイトルが並びます。</div></section>`;
+}
+function openNewsForm(id){
+  const a=id?(store.news||[]).find(x=>x.id===id):{published:true};
+  modal(`<div class="modal-h"><h3>${id?'お知らせを編集':'お知らせを追加'}</h3><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-b"><div class="form">
+      <div class="fld full"><label>タイトル *</label><input id="nw_title" value="${esc(a.title||'')}" placeholder="例：年末年始のお休みのお知らせ"></div>
+      <div class="fld full"><label>本文</label><textarea id="nw_body" style="min-height:110px" placeholder="例：12月29日〜1月3日はお休みをいただきます。">${esc(a.body||'')}</textarea></div>
+      <div class="fld"><label>表示開始日（空ならすぐ）</label><input id="nw_start" type="date" value="${esc(a.starts_on||'')}"></div>
+      <div class="fld"><label>表示終了日（空ならずっと）</label><input id="nw_end" type="date" value="${esc(a.ends_on||'')}"></div>
+      <div class="full"><label class="check"><input type="checkbox" id="nw_pin" ${a.pinned?'checked':''}> 大切なお知らせ（ホームのいちばん上に表示）</label>
+        <label class="check"><input type="checkbox" id="nw_pub" ${a.published!==false?'checked':''}> 公開する（外すと下書き）</label></div></div></div>
+    <div class="modal-f">${id?`<button class="btn danger" style="margin-right:auto" onclick="delNews('${id}')">削除</button>`:''}<button class="btn" onclick="closeModal()">キャンセル</button><button class="btn primary" onclick="saveNews('${id||''}')">保存する</button></div>`);
+}
+async function saveNews(id){
+  const v=k=>document.getElementById(k).value.trim();
+  const row={title:v('nw_title'),body:v('nw_body')||null,starts_on:v('nw_start')||null,ends_on:v('nw_end')||null,
+    pinned:document.getElementById('nw_pin').checked,published:document.getElementById('nw_pub').checked,updated_at:new Date().toISOString()};
+  if(!row.title){toast('タイトルを入力してください');return;}
+  if(row.starts_on&&row.ends_on&&row.starts_on>row.ends_on){toast('表示期間を確認してください');return;}
+  const {error}=id?await dbWrite('announcements','update',row,id):await dbWrite('announcements','insert',row);
+  if(error){toast('エラー: '+error.message);return;}
+  await loadAll();closeModal();render();toast(id?'更新しました':row.published?'お知らせを公開しました':'下書きを保存しました');
+}
+async function delNews(id){if(!confirm('このお知らせを削除しますか？'))return;
+  const {error}=await sb.from('announcements').delete().eq('id',id);if(error){toast('エラー: '+error.message);return;}
+  await loadAll();closeModal();render();toast('削除しました');}
+
 /* ---- 予約受付（お客様アプリからの予約） ---- */
 function migr9(){return !!(store.settings&&('booking_enabled' in store.settings));}
 function setBooking(){

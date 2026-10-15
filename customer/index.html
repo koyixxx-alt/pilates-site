@@ -100,6 +100,29 @@
   .empty{text-align:center;color:var(--sub);padding:22px 10px;font-size:13.5px;line-height:1.9}
   .note{background:var(--tile);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--ink2);line-height:1.85}
   ::placeholder{color:#d6c8c3;opacity:1}
+  .card .k span{margin-left:8px;letter-spacing:0;color:var(--faint)}
+  .pt{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-top:8px}
+  .pt .l{font-size:11px;color:var(--sub)}
+  .pt .v{font-size:22px;font-weight:700;line-height:1.35}
+  .pt .v small{font-size:12px;color:var(--sub);font-weight:500;margin-left:2px}
+  .pt .hotv .v{color:var(--danger)}
+  .gauge{height:8px;border-radius:999px;background:var(--pill);overflow:hidden;margin:12px 0 6px}
+  .gauge i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:width .6s ease}
+  .gauge.low i{background:var(--danger)}
+  .gl{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--sub)}
+  .gl b{color:var(--ink);font-weight:700}
+  .goalbar{margin-top:14px}
+  .sub-sec{margin-top:16px;padding-top:14px;border-top:1px solid var(--line2)}
+  .hw{font-size:14px;line-height:1.9;margin-top:6px;white-space:pre-wrap}
+  .news .nt-title{font-size:15px;font-weight:700;margin-top:6px}
+  .news .nt-body{font-size:13px;color:var(--ink2);line-height:1.85;margin-top:4px;white-space:pre-wrap}
+  .nd{border-top:1px solid var(--line2);padding:10px 0}
+  .nd:first-of-type{border-top:0}
+  .nd summary{list-style:none;display:flex;justify-content:space-between;gap:10px;font-size:14px;cursor:pointer}
+  .nd summary::-webkit-details-marker{display:none}
+  .nd summary em{font-style:normal;font-size:12px;color:var(--faint);white-space:nowrap}
+  .nd[open] summary span{font-weight:700}
+  .linkbtn{font-size:12.5px;color:var(--accent-d);font-weight:700;margin-top:12px;text-decoration:underline;text-underline-offset:3px}
   .days{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .days::-webkit-scrollbar{display:none}
   .day{flex:0 0 58px;border:1px solid var(--line);border-radius:14px;padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:1px;background:#fff}
@@ -264,13 +287,56 @@ function renderNotLinked(){
 
 /* ---------- データ ---------- */
 async function loadMine(){
-  const [m,s,r,c]=await Promise.all([
+  const [m,s,r,c,pr,pay,an]=await Promise.all([
     sb.from('measurements').select('*').eq('customer_id',me.id).order('date',{ascending:true}),
     sb.from('sessions').select('*').eq('customer_id',me.id).order('date',{ascending:false}),
-    sb.rpc('my_reservations'),sb.rpc('my_coupon_status')]);
+    sb.rpc('my_reservations'),sb.rpc('my_coupon_status'),sb.rpc('my_protein_status'),sb.rpc('my_payments'),
+    sb.from('announcements').select('*').order('created_at',{ascending:false})]);
   store.measurements=m.data||[];store.sessions=s.data||[];
   store.reservations=r&&!r.error?(r.data||[]):null;
   store.coupon=c&&!c.error&&c.data?c.data:null;
+  store.protein=pr&&!pr.error?pr.data:null;
+  store.payments=pay&&!pay.error?(pay.data||[]):null;
+  const t=today();
+  store.news=an&&!an.error?(an.data||[]).filter(a=>a.published!==false&&(!a.starts_on||a.starts_on<=t)&&(!a.ends_on||a.ends_on>=t))
+    .sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0)||String(b.created_at).localeCompare(String(a.created_at))):[];
+}
+function daysBetween(a,b){return Math.round((new Date(b+'T00:00:00')-new Date(a+'T00:00:00'))/86400000);}
+/* プロテイン：次の購入の目安と残り */
+function proteinInfo(){
+  const p=store.protein;if(!p||!p.purchase_date)return null;
+  const vol=+p.volume_g||500,serv=+p.serving_g||20,perDay=+p.per_day||1;
+  const servings=Math.floor(vol/serv),days=servings/perDay,runOut=addDays(p.purchase_date,Math.round(days));
+  const left=daysBetween(today(),runOut),usedDays=Math.max(0,daysBetween(p.purchase_date,today()));
+  return {product:p.product_name||'プロテイン',perDay,servings,runOut,left,remain:Math.max(0,Math.round(servings-usedDays*perDay)),pct:Math.max(0,Math.min(100,left/days*100))};
+}
+/* 通った記録：今月・通算・連続週 */
+function weekKey(s){const d=new Date(s+'T00:00:00');d.setDate(d.getDate()-((d.getDay()+6)%7));return ymd(d);}
+function visitStats(){
+  const ss=store.sessions,ym=today().slice(0,7),weeks=new Set(ss.map(s=>weekKey(s.date)));
+  let w=weekKey(today()),streak=0;
+  if(!weeks.has(w))w=addDays(w,-7);          /* 今週まだなら、先週から数える */
+  while(weeks.has(w)){streak++;w=addDays(w,-7);}
+  return {month:ss.filter(s=>(s.date||'').slice(0,7)===ym).length,total:ss.length,streak};
+}
+/* 目標までの進み具合 */
+function goalProgress(k,goal){
+  if(goal==null||goal==='')return null;
+  const ms=measures().filter(m=>m[k]!=null);if(!ms.length)return null;
+  const start=+ms[0][k],cur=+ms[ms.length-1][k],g=+goal;
+  const rem=cur-g,whole=start-g;
+  return {goal:g,cur,rem,done:rem<=0,pct:whole>0?Math.max(0,Math.min(100,(start-cur)/whole*100)):(rem<=0?100:0)};
+}
+/* 予約をスマホのカレンダーに追加（.ics） */
+function addToCalendar(date,time,dur,cat){
+  const st=new Date(`${date}T${time||'10:00'}:00`),en=new Date(st.getTime()+(+dur||50)*60000);
+  const f=d=>`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`;
+  const s=store.studio||{},title=`${studioName()} ${CATLABEL[cat]||'レッスン'}`;
+  const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Pilates MyPage//JA','BEGIN:VEVENT',`UID:${date}${time}@mypage`,`DTSTAMP:${f(new Date())}`,
+    `DTSTART:${f(st)}`,`DTEND:${f(en)}`,`SUMMARY:${title}`,s.address?`LOCATION:${s.address}`:'',
+    'BEGIN:VALARM','TRIGGER:-PT2H','ACTION:DISPLAY',`DESCRIPTION:${title}`,'END:VALARM','END:VEVENT','END:VCALENDAR'].filter(Boolean).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([ics],{type:'text/calendar'}));a.download=`予約_${date}.ics`;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
 function measures(){return [...store.measurements].sort((a,b)=>a.date.localeCompare(b.date));}
 
@@ -314,8 +380,10 @@ function viewBook(){
   const tel=s.phone?`<a href="tel:${esc(String(s.phone).replace(/[^0-9+]/g,''))}" class="btn wide" style="display:block;text-align:center;text-decoration:none;margin-top:14px">お電話でのご予約：${esc(s.phone)}</a>`:'';
   const mineHtml=`<div class="card"><div class="ch"><h2>ご予約中<span>${mine.length}件</span></h2></div>
     ${mine.length?mine.map(r=>`<div class="rec"><div class="h"><span class="dt">${fmtMd(r.date)} ${esc(r.time||'')}</span><span class="tag">${CATLABEL[r.category]||'レッスン'}</span></div>
-      ${canCancel(r)?`<div style="margin-top:8px"><button class="btn" style="padding:7px 14px;font-size:12px" onclick="cancelRes('${r.id}')">キャンセルする</button></div>`
-        :`<div class="pl" style="margin-top:4px">キャンセルはお店にご連絡ください</div>`}</div>`).join('')
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn" style="padding:7px 14px;font-size:12px" onclick="addToCalendar('${r.date}','${esc(r.time||'')}',${+r.duration||50},'${r.category||''}')">カレンダーに追加</button>
+        ${canCancel(r)?`<button class="btn" style="padding:7px 14px;font-size:12px" onclick="cancelRes('${r.id}')">キャンセルする</button>`
+          :`<span class="pl">キャンセルはお店にご連絡ください</span>`}</div></div>`).join('')
       :'<div class="muted" style="font-size:13px">現在のご予約はありません</div>'}</div>`;
   if(!c.on)return `${topBar()}${mineHtml}<div class="card"><div class="ch"><h2>新しく予約する</h2></div><div class="note">アプリからのご予約は、現在受け付けていません。</div>${tel}</div>`;
   if(me.withdrawn_at)return `${topBar()}<div class="card"><div class="note">退会済みのため、アプリからはご予約いただけません。</div>${tel}</div>`;
@@ -358,27 +426,51 @@ function topBar(){return `<div class="top"><div class="logo">${esc(studioName())
 function viewHome(){
   const ms=measures(),last=ms[ms.length-1],prev=ms[ms.length-2];
   const rv=store.reservations,next=rv&&rv[0];
-  const c=store.coupon;
+  const c=store.coupon,pi=proteinInfo(),vs=visitStats();
+  /* プロテイン：購入時期の目安＋スタンプ */
   let stampHtml='';
   if(c){const every=Math.max(1,+c.every||3),qty=+c.qty||0,stamps=qty%every,avail=Math.max(0,Math.floor(qty/every)-(+c.used||0));
-    stampHtml=`<div class="card"><div class="k">プロテイン スタンプ</div>
+    stampHtml=`<div class="${pi?'sub-sec':''}"><div class="k">スタンプ</div>
       <div class="stamps">${Array.from({length:every},(_,i)=>`<i class="${i<stamps?'on':''}">${i+1}</i>`).join('')}</div>
       <div style="font-size:13px;color:var(--ink2)">あと <b>${every-stamps}個</b> で ${yen(c.amount)} の割引券</div>
       ${avail?`<div class="coupon"><span>使える割引券</span><b>${yen(c.amount)}${avail>1?` × ${avail}枚`:''}</b></div><div class="muted" style="font-size:12px;margin-top:8px">次回のお会計でスタッフにお伝えください。</div>`:''}</div>`;}
+  const proteinHtml=pi||stampHtml?`<div class="card"><div class="k">プロテイン</div>
+    ${pi?`<div class="pt"><div><div class="l">次の購入の目安</div><div class="v">${fmtMd(pi.runOut)}</div></div>
+        <div class="${pi.left<=7?'hotv':''}" style="text-align:right"><div class="l">残り</div><div class="v">${pi.left>0?`${pi.left}<small>日</small>`:'補充時期'}</div></div></div>
+      <div class="gauge ${pi.left<=7?'low':''}"><i style="width:${pi.pct}%"></i></div>
+      <div class="gl"><span>${esc(pi.product)}・1日${pi.perDay}杯</span><span>残り約${pi.remain}杯</span></div>
+      ${pi.left<=7?`<div class="note" style="margin-top:12px">${pi.left>0?'そろそろなくなる頃です。':'なくなる頃です。'}次回のレッスンのときに、スタッフにお声がけください。</div>`:''}`:''}
+    ${stampHtml}</div>`:'';
   const diff=k=>last&&prev&&last[k]!=null&&prev[k]!=null?(+last[k]-(+prev[k])):null;
+  const hw=store.sessions.find(s=>s.homework&&daysBetween(s.date,today())<=45);
+  const gw=goalProgress('weight',me.goal_weight),gf=goalProgress('body_fat',me.goal_body_fat);
+  const goalBar=(g,label,u)=>g?`<div class="goalbar"><div class="gl"><span>${label} ${g.goal}${u} まで</span><b>${g.done?'目標を達成しました':`あと ${g.rem.toFixed(1)}${u}`}</b></div><div class="gauge"><i style="width:${g.pct}%"></i></div></div>`:'';
   return `${topBar()}
   <div class="hello">${me.withdrawn_at?'':'こんにちは'}<b>${esc(me.name)} さま</b></div>
   ${me.withdrawn_at?`<div class="banner">${fmtYmd(me.withdrawn_at)} に退会されています。これまでの記録はご覧いただけます。</div>`:''}
+  ${(store.news||[]).filter(a=>a.pinned).slice(0,2).map(a=>`<div class="card news"><div class="k">大切なお知らせ<span>${fmtYmd(String(a.created_at).slice(0,10))}</span></div>
+    <div class="nt-title">${esc(a.title)}</div>${a.body?`<div class="nt-body">${esc(a.body)}</div>`:''}</div>`).join('')}
   ${rv?`<div class="card"><div class="k">次回のご予約</div>
     ${next?`<div class="next"><div class="day">${+next.date.slice(8,10)}</div><div class="meta">${fmtMd(next.date)} ${esc(next.time||'')}<br>${CATLABEL[next.category]||'レッスン'}${next.duration?`・${next.duration}分`:''}</div></div>
+      <button class="linkbtn" onclick="addToCalendar('${next.date}','${esc(next.time||'')}',${+next.duration||50},'${next.category||''}')">スマホのカレンダーに追加</button>
       ${rv.length>1?`<div class="more">その後のご予約：${rv.slice(1,4).map(r=>`${+r.date.slice(5,7)}/${+r.date.slice(8,10)} ${esc(r.time||'')}`).join('、')}${rv.length>4?' ほか':''}</div>`:''}`
       :'<div class="muted" style="font-size:13px;margin-top:6px">次回のご予約はまだありません</div>'}
     ${bk().on&&!me.withdrawn_at?`<button class="btn primary wide" style="margin-top:14px" onclick="go('book')">予約する</button>`:''}</div>`:''}
-  ${stampHtml}
+  ${hw?`<div class="card"><div class="k">次回までのセルフケア<span>${fmtMd(hw.date)} のレッスンより</span></div><div class="hw">${esc(hw.homework)}</div></div>`:''}
+  ${vs.total?`<div class="card"><div class="k">通った記録</div><div class="mrow">
+    <div><div class="l">今月</div><div class="v">${vs.month}<small>回</small></div></div>
+    <div><div class="l">これまで</div><div class="v">${vs.total}<small>回</small></div></div>
+    <div><div class="l">連続</div><div class="v">${vs.streak}<small>週</small></div></div></div>
+    ${vs.streak>=2?`<div class="muted" style="font-size:12px;margin-top:8px">${vs.streak}週続けて通えています。この調子で続けましょう。</div>`:''}</div>`:''}
+  ${proteinHtml}
+  ${(store.news||[]).filter(a=>!a.pinned).length?`<div class="card"><div class="k">お知らせ</div>
+    ${(store.news||[]).filter(a=>!a.pinned).slice(0,5).map(a=>`<details class="nd"><summary><span>${esc(a.title)}</span><em>${fmtYmd(String(a.created_at).slice(0,10)).slice(5)}</em></summary>
+      ${a.body?`<div class="nt-body">${esc(a.body)}</div>`:''}</details>`).join('')}</div>`:''}
   <div class="card"><div class="k">${last?`前回の計測　${fmtYmd(last.date)}`:'計測'}</div>
     ${last?`<div class="mrow">${['weight','body_fat','waist'].map(k=>{const meta=METRICS.find(m=>m[0]===k),d=diff(k);
       return `<div><div class="l">${meta[1]}</div><div class="v">${last[k]!=null?last[k]:'—'}<small>${last[k]!=null?meta[2]:''}</small></div>
         <div class="d ${d==null?'muted':d<=0?'up':'dn'}">${d==null?'　':`${d<0?'▼':d>0?'▲':'±'} ${Math.abs(d).toFixed(1)}${meta[2]}`}</div></div>`;}).join('')}</div>
+      ${goalBar(gw,'目標体重','kg')}${goalBar(gf,'目標体脂肪率','%')}
       <button class="btn wide" style="margin-top:14px" onclick="go('record')">推移を見る</button>`
       :'<div class="muted" style="font-size:13px;margin-top:6px">まだ計測の記録がありません</div>'}</div>
   ${me.goal?`<div class="card"><div class="k">目標</div><div class="goal">${esc(me.goal)}</div></div>`:''}`;
@@ -398,7 +490,8 @@ function viewRecord(){
         <span>${s?`<span class="tag">${CATLABEL[s.category]||'レッスン'}</span>`:'<span class="tag gray">計測</span>'}</span></div>
       ${s&&s.menu?`<div class="pl">${esc(s.menu)}${s.duration?`・${s.duration}分`:''}</div>`:''}
       ${m?`<div class="vals">${METRICS.filter(([k])=>m[k]!=null).map(([k,l,u])=>`<span>${l} <b>${m[k]}</b>${u}</span>`).join('')}</div>`:''}
-      ${s&&s.note?`<div class="nt">${esc(s.note)}</div>`:''}</div>`).join('')
+      ${s&&s.note?`<div class="nt">${esc(s.note)}</div>`:''}
+      ${s&&s.homework?`<div class="nt"><b>セルフケア</b>　${esc(s.homework)}</div>`:''}</div>`).join('')
       :'<div class="empty">まだ記録がありません</div>'}</div>
   ${me.withdrawn_at?'':`<button class="btn primary wide" style="margin-top:16px" onclick="openMeasureForm()">自分で計測を記録する</button>`}`;
 }
@@ -419,6 +512,13 @@ function viewMypage(){
       ${s.hours?`<li><span>営業時間</span><span>${esc(s.hours)}</span></li>`:''}
       ${s.holiday?`<li><span>定休日</span><span>${esc(s.holiday)}</span></li>`:''}
     </ul>${!s.address&&!s.phone&&!s.hours?'<div class="muted" style="font-size:13px">スタジオ情報は準備中です</div>':''}</div>
+  ${store.payments?`<div class="card"><div class="ch"><h2>ご利用履歴<span>${store.payments.length}件</span></h2></div>
+    ${store.payments.length?(ui.payAll?store.payments:store.payments.slice(0,5)).map(p=>{const it=Array.isArray(p.items)?p.items:[];
+      const names=it.length?it.map(i=>(i.name||'').replace('（契約料金）','')+(+i.qty>1?' ×'+i.qty:'')).join('、'):(CATLABEL[p.category]||'ご利用');
+      return `<div class="rec"><div class="h"><span class="dt">${fmtYmd(p.date)}</span><b>${yen(p.amount)}</b></div>
+        <div class="pl">${esc(names)}${+p.coupons_used?`・割引券 −${yen(p.coupon_discount)}`:''}</div></div>`;}).join('')
+      +(store.payments.length>5&&!ui.payAll?`<button class="linkbtn" onclick="ui.payAll=true;render()">すべて見る（${store.payments.length}件）</button>`:'')
+      :'<div class="muted" style="font-size:13px">まだご利用の記録はありません</div>'}</div>`:''}
   <div class="card"><div class="ch"><h2>アプリのように使う</h2></div>
     <div class="note">iPhone：Safariの共有ボタン →「ホーム画面に追加」<br>Android：Chromeのメニュー →「ホーム画面に追加」</div></div>
   <button class="btn wide" style="margin-top:16px" onclick="signOut()">ログアウト</button>`;

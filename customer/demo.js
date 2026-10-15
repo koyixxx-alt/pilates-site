@@ -5,9 +5,10 @@
   const T=new Date();T.setHours(0,0,0,0);
   const day=o=>{const d=new Date(T);d.setDate(d.getDate()+o);return ymd(d);};
   let seq=1;const uid=()=>'demo-'+(seq++);
-  const me={id:'demo-me',name:'佐藤 美咲',kana:'さとう みさき',email:'member1@example.com',goal:'姿勢改善と体脂肪-5%',joined:day(-300),
+  const me={id:'demo-me',name:'佐藤 美咲',kana:'さとう みさき',email:'member1@example.com',goal:'姿勢改善と体脂肪-5%',goal_weight:52,goal_body_fat:24,joined:day(-300),
     cat_training:true,cat_slimming:false,cat_bust:false,withdrawn_at:null};
   const db={customers:[me],measurements:[],sessions:[],
+    announcements:[{id:'a1',title:'年末年始のお休みのお知らせ',body:'12月29日〜1月3日はお休みをいただきます。\n1月4日から通常どおり営業します。',published:true,pinned:true,created_at:day(-2)+'T10:00:00'},{id:'a2',title:'お友だち紹介キャンペーン',body:'ご紹介でお二人とも次回レッスン1,000円引き。',published:true,pinned:false,created_at:day(-10)+'T10:00:00'}],
     studio_settings:[{id:1,studio_name:'Noailles',phone:'03-0000-0000',address:'東京都〇〇区〇〇 1-2-3',hours:'10:00〜21:00',holiday:'水曜日',coupon_every:3,coupon_amount:1000,
       booking_enabled:true,open_time:'10:00',close_time:'21:00',lesson_minutes:50,slot_step:30,closed_days:[3],book_days_ahead:30,book_min_hours:3,cancel_min_hours:24}]};
   let w=58.6,f=28.4,waist=72.5,n=0;
@@ -15,7 +16,7 @@
   const notes=['骨盤の動きが良くなってきました。次回は呼吸を意識しましょう。',null,'肩の力が抜けてきています。お家でもキャットストレッチを。',null];
   for(let o=-290;o<=-1;o+=7){
     const date=day(o);n++;
-    db.sessions.push({id:uid(),customer_id:me.id,date,category:'training',menu:menus[n%4],duration:50,note:notes[n%4]});
+    db.sessions.push({id:uid(),customer_id:me.id,date,category:'training',menu:menus[n%4],duration:50,note:notes[n%4],homework:o>-10?'寝る前にキャットストレッチを10回。\n呼吸を止めず、背中を丸める・反らすをゆっくり。':null});
     if(n%3===1){w-=.35;f-=.25;waist-=.3;db.measurements.push({id:uid(),customer_id:me.id,date,weight:+w.toFixed(1),body_fat:+f.toFixed(1),waist:+waist.toFixed(1),hip:null,thigh:null,arm:null,note:null});}
   }
   const mine=[{id:uid(),date:day(2),time:'10:00',category:'training',duration:50,status:'booked'},{id:uid(),date:day(9),time:'10:00',category:'training',duration:50,status:'booked'}];
@@ -23,6 +24,8 @@
   const rpcs={
     my_reservations:()=>mine.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)),
     my_coupon_status:()=>({qty:8,used:1,every:3,amount:1000}),
+    my_protein_status:()=>({purchase_date:day(-19),volume_g:500,serving_g:20,per_day:1,product_name:'ソイプロテイン 500g'}),
+    my_payments:()=>[0,7,14,21,28,35,42].map((o,i)=>({date:day(-1-o),amount:i===2?15800:12000,items:i===2?[{kind:'training',name:'トレーニング（契約料金）',price:12000,qty:1},{kind:'protein',name:'ソイプロテイン 500g',price:4800,qty:1}]:[{kind:'training',name:'トレーニング（契約料金）',price:12000,qty:1}],category:'training',method:'card',coupons_used:i===2?1:0,coupon_discount:i===2?1000:0})),
     busy_slots:()=>others.concat(mine.map(r=>({date:r.date,time:r.time,duration:r.duration}))),
     book_reservation:a=>{mine.push({id:uid(),date:a.p_date,time:a.p_time,category:a.p_category,duration:50,status:'booked'});return null;},
     cancel_my_reservation:a=>{const i=mine.findIndex(r=>r.id===a.p_id);if(i>=0)mine.splice(i,1);return null;}
