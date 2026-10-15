@@ -151,6 +151,7 @@
 
   /* ---------- 表 ---------- */
   .tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .pbar td:first-child i{display:block;height:3px;border-radius:2px;background:var(--accent);width:var(--w);max-width:100%;margin-top:6px}
   table.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
   .tbl th{font-size:var(--fs-xs);color:var(--sub);font-weight:500;text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;letter-spacing:.04em}
   .tbl td{padding:var(--s3) 10px;border-bottom:1px solid var(--line2);vertical-align:middle}
@@ -178,7 +179,7 @@
   .today .t{font-size:17px;font-weight:700}
   .today .n{font-size:15px;font-weight:700;cursor:pointer;transition:color var(--t-fast)}
   .today .p{font-size:var(--fs-sm);color:var(--sub);margin-top:2px}
-  .today li.fin .t,.today li.fin .n{color:var(--faint)}
+  .today li.fin .t,.today li.fin .n{color:var(--sub);font-weight:500}
   .flow{display:flex;align-items:center;gap:3px}
   .flow .arr{color:var(--sub);font-size:var(--fs-xs)}
   .step{min-height:34px;font-size:var(--fs-sm);font-weight:700;border-radius:var(--r-pill);padding:6px 13px;border:1px solid var(--line);color:var(--ink2);background:var(--paper);white-space:nowrap;
@@ -233,6 +234,12 @@
   .rv.app{box-shadow:inset 3px 0 0 var(--accent)}
   .rv.blk{background:var(--pill);color:var(--ink2)}
   .rv.more{background:none;color:var(--sub)}
+  .rv.moved{background:var(--paper);border:1px dashed var(--faint);color:var(--sub)}
+  .rv.moved s{text-decoration-thickness:1px;text-decoration-color:var(--sub)}
+  .rv em{font-style:normal;font-weight:700;color:var(--accent-d);margin-left:4px;letter-spacing:-.01em}
+  .rv.chg em{margin:0 4px 0 0}
+  .rv.chg{box-shadow:inset 3px 0 0 var(--accent-d)}
+  .legend2 i.mv{background:var(--paper);border:1px dashed var(--faint)}
   .legend2{margin-top:var(--s3);display:flex;gap:18px;font-size:var(--fs-sm);color:var(--sub)}
   .legend2 span{display:inline-flex;align-items:center;gap:6px}
   .legend2 i{width:11px;height:11px;border-radius:3px;background:var(--accent-soft)}
@@ -258,6 +265,20 @@
   .stamps{display:inline-flex;gap:6px;align-items:center;vertical-align:middle}
   .stamps i{width:24px;height:24px;border-radius:50%;border:1.5px dashed var(--faint);display:grid;place-items:center;font-style:normal;font-size:var(--fs-xs);color:var(--sub)}
   .stamps i.on{border:0;background:var(--accent);color:var(--accent-ink);font-weight:700}
+  .tkt-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--s3)}
+  .tkt{border:1px solid var(--line);border-radius:var(--r-md);padding:14px var(--s4)}
+  .tkt.done{opacity:.6}
+  .tkt-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:var(--fs-sm);flex-wrap:wrap}
+  .tkt-h b{font-size:15px}
+  .tkt-dots{display:flex;align-items:center;gap:6px;margin:10px 0 6px}
+  .tkt-dots i{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--accent)}
+  .tkt-dots i.on{background:var(--accent)}
+  .tkt-dots span{margin-left:auto;font-size:13px;color:var(--ink2)}
+  .tkt-dots b{font-size:18px;color:var(--ink)}
+  .tkt-exp{font-size:13px;color:var(--ink2)}
+  .tkt-log{font-size:var(--fs-sm);color:var(--ink2);margin-top:6px}
+  .tkt-log summary{cursor:pointer;color:var(--sub);min-height:28px;display:flex;align-items:center}
+  .tkt-log div{padding:3px 0}
   .plancards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:var(--s3)}
   .plancards>div{border:1px solid var(--line);border-radius:var(--r-md);padding:14px var(--s4)}
   .hist{font-size:var(--fs-sm);color:var(--sub);margin-top:6px}
@@ -311,6 +332,39 @@
   .sum div{display:flex;justify-content:space-between;font-size:13px;color:var(--ink2);padding:3px 0}
   .sum .grand{font-size:15px;color:var(--ink);font-weight:700;padding-top:var(--s2);align-items:baseline}
   .sum .grand b{font-size:26px;color:var(--accent-d);letter-spacing:-.01em}
+  /* 会計：メニューの箱・商品の選択 */
+  .pbox{border:1px solid var(--line);border-radius:var(--r-md);padding:14px var(--s4);margin-top:10px;background:var(--tile);animation:rise var(--t-med) var(--ease-out) both}
+  .pbox-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:var(--s2);font-size:var(--fs-sm)}
+  .pbox-h b{font-size:15px}
+  .pbox .note{background:var(--paper)}
+  .plist{list-style:none;display:flex;flex-direction:column;gap:6px}
+  .plist li{display:flex;align-items:center;gap:var(--s2);background:var(--paper);border:1px solid var(--line);border-radius:var(--r-sm);padding:4px 6px 4px 4px;transition:border-color var(--t-fast)}
+  .plist li.on{border-color:var(--accent)}
+  .plist .pick{flex:1;display:flex;align-items:center;gap:10px;min-height:42px;padding:6px 8px;text-align:left}
+  .plist .ck{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--faint);flex-shrink:0;position:relative;transition:background var(--t-fast),border-color var(--t-fast)}
+  .plist li.on .ck{background:var(--accent-d);border-color:var(--accent-d)}
+  .plist li.on .ck::after{content:'';position:absolute;left:6px;top:2px;width:5px;height:10px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+  .plist .pn{flex:1;font-size:var(--fs-md)}
+  .plist .pp{font-size:13px;color:var(--ink2);font-weight:700}
+  .qty{display:inline-flex;align-items:center;gap:2px;background:var(--pill);border-radius:var(--r-pill);padding:2px}
+  .qty button{width:34px;height:34px;border-radius:50%;font-size:18px;color:var(--ink2)}
+  .qty b{min-width:22px;text-align:center}
+  /* 会計：お客様に見せる確認画面 */
+  .cf{padding:34px 30px 22px!important;text-align:left}
+  .cf-studio{font-size:var(--fs-sm);letter-spacing:.24em;color:var(--sub);text-align:center}
+  .cf-name{font-size:var(--fs-xl);font-weight:700;text-align:center;margin:6px 0 22px;letter-spacing:.04em}
+  .cf-lines{list-style:none;border-top:1px solid var(--line)}
+  .cf-lines li{display:flex;justify-content:space-between;gap:var(--s4);padding:13px 2px;border-bottom:1px solid var(--line2);font-size:var(--fs-lg)}
+  .cf-lines li b{font-weight:700;white-space:nowrap}
+  .cf-lines li.dc{color:var(--accent-d)}
+  .cf-total{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s4);margin-top:18px;padding-top:var(--s4);border-top:2px solid var(--ink)}
+  .cf-total span{font-size:var(--fs-lg);font-weight:700}
+  .cf-total b{font-size:40px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
+  .cf-method{text-align:right;color:var(--sub);font-size:13px;margin-top:6px}
+  .cf-done{text-align:center}
+  .cf-done .cf-total{flex-direction:column;align-items:center}
+  .cf-check{width:64px;height:64px;border-radius:50%;background:var(--accent);margin:4px auto 6px;position:relative;animation:pop .5s var(--ease-out) both}
+  .cf-check::after{content:'';position:absolute;left:24px;top:15px;width:14px;height:26px;border:solid var(--accent-ink);border-width:0 3px 3px 0;transform:rotate(45deg)}
   .morelist button{display:block;width:100%;text-align:left;padding:15px 4px;border-bottom:1px solid var(--line2);font-size:15px}
   .copyrow{display:flex;gap:var(--s2);align-items:center;flex-wrap:wrap}
   .copyrow code{font-family:inherit;background:var(--tile);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 14px;font-size:var(--fs-md);word-break:break-all}
@@ -397,6 +451,10 @@
     .cal-dow{font-size:var(--fs-xs);padding:6px 0}
     .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
   }
+  .pwbox{position:relative;display:block}
+  .pwbox input{width:100%;padding-right:48px}
+  .pweye{position:absolute;right:4px;top:50%;transform:translateY(-50%);width:40px;height:40px;display:grid;place-items:center;background:none;border:0;border-radius:var(--r-sm,10px);color:var(--sub);cursor:pointer}
+  @media(hover:hover){.pweye:hover{color:var(--ink)}}
 </style>
 </head>
 <body>
@@ -702,12 +760,12 @@ async function forceChange(){
 }
 async function signOut(){
   if(DEMO){location.href=location.pathname;return;}
-  clearCreds();await sb.auth.signOut();show('auth');document.getElementById('auPass').value='';
+  clearCreds();await sb.auth.signOut();show('auth');document.getElementById('auPass').value='';pwHideAll();
 }
 
 /* ================= データ読み込み ================= */
 async function loadAll(){
-  const [c,m,s,p,pr,rv,pd,pp,st,an]=await Promise.all([
+  const [c,m,s,p,pr,rv,pd,pp,st,an,tsx,tux,tlx,cpx]=await Promise.all([
     sb.from('customers').select('*').order('created_at',{ascending:true}),
     sb.from('measurements').select('*').order('date',{ascending:true}),
     sb.from('sessions').select('*').order('date',{ascending:false}),
@@ -718,8 +776,14 @@ async function loadAll(){
     sb.from('plan_prices').select('*').order('effective_date',{ascending:false}),
     sb.from('studio_settings').select('*').eq('id',1).maybeSingle(),
     sb.from('announcements').select('*').order('created_at',{ascending:false}),
+    sb.from('ticket_sets').select('*').order('purchased_on',{ascending:true}),
+    sb.from('ticket_uses').select('*').order('used_on',{ascending:true}),
+    sb.from('ticket_expiry_log').select('*').order('changed_at',{ascending:false}),
+    sb.from('coupons').select('*').order('issued_on',{ascending:true}),
   ]);
   store.news=an.error?null:(an.data||[]);   /* null＝SQL⑪がまだ */
+  store.migr12=!tsx.error;                  /* 回数券・割引券（SQL⑫） */
+  store.ticketSets=tsx.data||[];store.ticketUses=tux.data||[];store.expiryLog=tlx.data||[];store.coupons=cpx.data||[];
   store.customers=c.data||[];store.measurements=m.data||[];store.sessions=s.data||[];
   store.payments=p.data||[];store.proteins=pr.data||[];store.reservations=rv.data||[];
   store.products=pd.data||[];store.planPrices=pp.data||[];
@@ -745,9 +809,9 @@ function S(){return store.settings||{};}
 function studioName(){return S().studio_name||localStorage.getItem('studio_name')||'Pilates Studio';}
 
 /* ================= データの見方 ================= */
-const CATS=[['training','トレーニング'],['slimming','痩身'],['bust','バスト']];
-const KINDS=[['training','トレーニング'],['slimming','痩身'],['bust','バスト'],['protein','プロテイン'],['beauty','美容']];
-const CATLABEL={training:'トレーニング',slimming:'痩身',bust:'バスト',protein:'プロテイン',beauty:'美容',goods:'美容',other:'その他'};
+const CATS=[['training','加圧'],['slimming','痩身'],['bust','バスト']];
+const KINDS=[['training','加圧'],['slimming','痩身'],['bust','バスト'],['protein','プロテイン'],['beauty','美容']];
+const CATLABEL={training:'加圧',slimming:'痩身',bust:'バスト',protein:'プロテイン',beauty:'美容',goods:'美容',other:'その他'};
 const METHODS=[['cash','現金'],['card','クレジット'],['qr','QR決済'],['other','その他']];
 const METRICS=[['weight','体重','kg'],['body_fat','体脂肪率','%'],['waist','ウエスト','cm'],['hip','ヒップ','cm'],['thigh','太もも','cm'],['arm','二の腕','cm']];
 const PROTEIN_BAG_G=500,PROTEIN_SERVING_G=20;
@@ -755,7 +819,7 @@ function catLabel(k){return CATLABEL[k]||k||'—';}
 function methodLabel(k){const m=METHODS.find(x=>x[0]===k);return m?m[1]:'—';}
 function custById(id){return store.customers.find(c=>c.id===id)||null;}
 function actives(){return store.customers.filter(c=>!c.withdrawn_at);}
-function nextReservation(cid){const t=today();return store.reservations.filter(r=>r.customer_id===cid&&r.date>=t&&r.status!=='cancelled').sort(byTime)[0]||null;}
+function nextReservation(cid){const t=today();return store.reservations.filter(r=>r.customer_id===cid&&r.date>=t&&activeRv(r)).sort(byTime)[0]||null;}
 function kanaKey(c){return toKata(((c.last_kana||'')+(c.first_kana||''))||c.kana||c.name||'');}
 /* ひらがな→カタカナ、全角数字→半角 */
 function toKata(s){return String(s||'').replace(/[ぁ-ゖ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)+0x60));}
@@ -815,8 +879,9 @@ function payBreakdown(p){
   const f=(+p.amount||0)/sum;L.forEach(l=>{out[l.kind]=(out[l.kind]||0)+l.price*l.qty*f;});return out;
 }
 function payKinds(p){const b=payBreakdown(p);return KINDS.map(k=>k[0]).concat(['other']).filter(k=>b[k]);}
+function extraDiscounts(p){const d=Array.isArray(p.discounts)?p.discounts:[];return d.reduce((s,x)=>s+(+x.amount||0),0);}
 function payDiscount(p){
-  if(p.subtotal!=null)return (+p.coupon_discount||0)+Math.max(0,-(+p.adjust_amount||0));
+  if(p.subtotal!=null)return (+p.coupon_discount||0)+extraDiscounts(p)+Math.max(0,-(+p.adjust_amount||0));
   const v=+p.discount_value||0;
   if(p.discount_type==='minus')return v;
   if(p.discount_type==='minus_pct'){const L=payLinesOf(p);return L.reduce((s,l)=>s+l.price*l.qty,0)*v/100;}
@@ -830,16 +895,49 @@ function monthToDate(){const t=today();return [t.slice(0,8)+'01',t];}
 function prevMonthSame(){const d=new Date();const pm=new Date(d.getFullYear(),d.getMonth()-1,1);
   const last=new Date(d.getFullYear(),d.getMonth(),0).getDate();return [ymd(pm),ymd(new Date(pm.getFullYear(),pm.getMonth(),Math.min(d.getDate(),last)))];}
 
-/* ---- 割引券（プロテインを◯個買うごとに◯円） ---- */
+/* ---- 商品スタンプ（プロテイン・美容を合計◯個買うごとに◯円券） ---- */
+const PLAN_KEYS=['training','slimming','bust'];
+function isProductLine(l){return !PLAN_KEYS.includes(l.kind)&&l.kind!=='other';}
 function couponCfg(){return {every:Math.max(1,+S().coupon_every||3),amount:+S().coupon_amount||1000};}
 function couponState(cid){
   const {every,amount}=couponCfg();
   const ps=livePays().filter(p=>p.customer_id===cid);
-  const qty=ps.reduce((s,p)=>s+payLinesOf(p).filter(l=>l.kind==='protein').reduce((a,l)=>a+l.qty,0),0);
+  const qty=ps.reduce((s,p)=>s+payLinesOf(p).filter(isProductLine).reduce((a,l)=>a+l.qty,0),0);
   const used=ps.reduce((s,p)=>s+(+p.coupons_used||0),0);
   const earned=Math.floor(qty/every);
   return {qty,stamps:qty%every,every,amount,earned,used,avail:Math.max(0,earned-used)};
 }
+/* ---- 料金の設定 ---- */
+function priceCfg(){const s=S();return {slim:+s.slimming_price||8000,size:Math.max(1,+s.set_size||5),referral:+s.referral_amount||1000,birthday:+s.birthday_amount||1500};}
+/* 加圧の1回料金はお客様ごと、痩身は全員一律 */
+function unitPrice(c,plan){if(plan==='slimming')return priceCfg().slim;const p=c?currentPlanPrice(c,plan):null;return p||0;}
+
+/* ---- 回数券（5回で1セット・加圧と痩身で共用） ---- */
+function setLive(s){const v=voidedIds();return !(s.payment_id&&v.has(s.payment_id));}
+function setUses(s){const v=voidedIds();return (store.ticketUses||[]).filter(u=>u.set_id===s.id&&!(u.payment_id&&v.has(u.payment_id)));}
+function setRemain(s){return Math.max(0,(+s.total||0)-setUses(s).length);}
+function setExpired(s,on){return !!s.expires_on&&s.expires_on<(on||today());}
+function custSets(cid){return (store.ticketSets||[]).filter(s=>s.customer_id===cid&&setLive(s));}
+/* 使える回数券（期限が近いものから）。痩身のレッスンは痩身券→加圧券（差額）の順 */
+function usableSets(cid,on){return custSets(cid).filter(s=>setRemain(s)>0&&!setExpired(s,on))
+  .sort((a,b)=>(a.expires_on||'9999').localeCompare(b.expires_on||'9999')||a.purchased_on.localeCompare(b.purchased_on));}
+function pickSet(cid,plan,on){const l=usableSets(cid,on);return l.find(s=>s.plan===plan)||l[0]||null;}
+function surchargeFor(set,plan){if(!set||plan!=='slimming'||set.plan==='slimming')return 0;return Math.max(0,priceCfg().slim-(+set.unit_price||0));}
+function ticketSummary(cid){const l=usableSets(cid);return {remain:l.reduce((a,s)=>a+setRemain(s),0),next:l[0]||null};}
+
+/* ---- 紹介割・誕生日割 ---- */
+function openCoupons(cid){const v=voidedIds();return (store.coupons||[]).filter(c=>c.customer_id===cid&&(!c.used_payment_id||v.has(c.used_payment_id))&&!(c.expires_on&&c.expires_on<today()));}
+function birthdayAvail(c,on){
+  on=on||today();if(!c||!c.birthday||String(c.birthday).slice(5,7)!==on.slice(5,7))return 0;
+  const used=livePays().some(p=>p.customer_id===c.id&&(p.date||'').slice(0,4)===on.slice(0,4)&&(Array.isArray(p.discounts)?p.discounts:[]).some(d=>d.kind==='birthday'));
+  return used?0:priceCfg().birthday;
+}
+
+/* ---- 予約・レッスンの複数プラン ---- */
+function activeRv(r){return r.status!=='cancelled'&&r.status!=='moved';}
+function rvCats(r){return (Array.isArray(r.categories)&&r.categories.length?r.categories:(r.category?[r.category]:[]));}
+function sesCats(s){return (Array.isArray(s.categories)&&s.categories.length?s.categories:(s.category?[s.category]:[]));}
+function catsLabel(a){return a.length?a.map(catLabel).join('・'):'—';}
 function stampsHtml(cs){return `<span class="stamps">${Array.from({length:cs.every},(_,i)=>`<i class="${i<cs.stamps?'on':''}">${i+1}</i>`).join('')}</span>`;}
 
 /* ---- プロテインの次回購入時期 ---- */
@@ -937,10 +1035,10 @@ function migrBanner(){return store.migr6?'':`<div class="banner">データベー
 function viewHome(){
   const t=today(),ym=t.slice(0,7),mon=+t.slice(5,7),[a,b]=monthToDate();
   const ses=store.sessions.filter(s=>(s.date||'').slice(0,7)===ym);
-  const cnt=k=>ses.filter(s=>s.category===k).length;
+  const cnt=k=>ses.filter(s=>sesCats(s).includes(k)).length;
   const range=`${mon}/1〜${mon}/${+t.slice(8,10)}`;
-  const todays=store.reservations.filter(r=>r.date===t&&r.status!=='cancelled').sort(byTime);
-  const upcoming=store.reservations.filter(r=>r.date>t&&r.status!=='cancelled').sort(byTime).slice(0,6);
+  const todays=store.reservations.filter(r=>r.date===t&&activeRv(r)).sort(byTime);
+  const upcoming=store.reservations.filter(r=>r.date>t&&activeRv(r)).sort(byTime).slice(0,6);
   const mp=livePays().filter(p=>inRange(p,a,b)),agg=sumKinds(mp),total=sumAmt(mp);
   const [pa,pb]=prevMonthSame(),prevTotal=sumAmt(livePays().filter(p=>inRange(p,pa,pb)));
   const soon=proteinSoon();
@@ -969,20 +1067,22 @@ function viewHome(){
   </div></div>`;
 }
 function todayItem(r){
-  if(!r.customer_id)return `<li><div class="t">${esc(r.time||'—')}</div><div><div class="n" onclick="openReservationForm('${r.date}','${r.id}')">${esc(r.note||'予定')}</div><div class="p">お客様なしの予定（アプリの予約は受け付けません）</div></div><div></div></li>`;
+  if(!r.customer_id)return `<li><div class="t">${esc(r.time||'—')}</div><div><div class="n" onclick="openReservationForm('${r.date}','${r.id}')">${esc(r.note||'予定')}</div><div class="p">お客様なしの予定</div></div><div></div></li>`;
   const c=custById(r.customer_id),st=rvState(r),fin=st.checkin&&st.lesson&&st.pay;
   const next=!st.checkin?'checkin':!st.lesson?'lesson':!st.pay?'pay':'';
-  const cs=c?couponState(c.id):null;
+  const cs=c?couponState(c.id):null,tk=c?ticketSummary(c.id):null,cats=rvCats(r);
+  const needsTicket=cats.some(k=>k==='training'||k==='slimming');
   const step=(k,label,done)=>`<button class="step ${done?'done':next===k?'next':''}" onclick="flowStep('${r.id}','${k}')">${label}</button>`;
   return `<li class="${fin?'fin':''}"><div class="t">${esc(r.time||'—')}</div>
     <div><div class="n" onclick="openCustomer('${r.customer_id}')">${c?esc(c.name):'—'}
-      ${cs&&cs.avail?' <span class="tag">割引券あり</span>':''}${isBirthday(c,r.date)?' <span class="tag">誕生日</span>':''}</div>
-      <div class="p">${r.category?catLabel(r.category):'—'}${r.note?'・'+esc(r.note):''}</div></div>
+      ${cs&&cs.avail?' <span class="tag">割引券あり</span>':''}${isBirthday(c,r.date)?' <span class="tag">誕生日</span>':''}
+      ${needsTicket&&tk&&store.migr12?(tk.remain?` <span class="tag gray">回数券 残り${tk.remain}</span>`:' <span class="tag">回数券なし</span>'):''}</div>
+      <div class="p">${catsLabel(cats)}${r.moved_from?'・日時変更あり':''}${r.note?'・'+esc(r.note):''}</div></div>
     <div class="flow">${step('checkin','入店',st.checkin)}<span class="arr" aria-hidden="true">›</span>${step('lesson',st.lesson?'レッスン':'レッスン記録',st.lesson)}<span class="arr" aria-hidden="true">›</span>${step('pay','会計',st.pay)}</div></li>`;
 }
 function upcItem(r){const c=custById(r.customer_id);
   return `<li onclick="openReservationForm('${r.date}','${r.id}')"><span>${fmtMd(r.date)}</span><span class="muted">${esc(r.time||'—')}</span>
-    <span>${c?esc(c.name):`<span class="muted">${esc(r.note||'予定')}</span>`}${r.source==='customer'?' <span class="tag">アプリ</span>':''}</span><span class="pl">${r.category?catLabel(r.category):''}</span></li>`;}
+    <span>${c?esc(c.name):`<span class="muted">${esc(r.note||'予定')}</span>`}</span><span class="pl">${catsLabel(rvCats(r))}</span></li>`;}
 async function flowStep(rid,k){
   const r=store.reservations.find(x=>x.id===rid);if(!r)return;const st=rvState(r);
   if(k==='checkin'){
@@ -1006,14 +1106,14 @@ function viewReservations(){
   if(!ui.calMonth)ui.calMonth=today().slice(0,7);
   const [y,m]=ui.calMonth.split('-').map(Number);
   return `${pageHead('RESERVATIONS','予約',`<button class="btn primary" onclick="openReservationForm()">＋ 予約</button>`)}
-  ${noticesCard()}
   <section class="card">
-    <div class="cal-head"><button class="btn sm" onclick="calNav(-1)">‹</button><h2>${y}年${m}月</h2><button class="btn sm" onclick="calNav(1)">›</button>
+    <div class="cal-head"><button class="btn sm" onclick="calNav(-1)" aria-label="前の月">‹</button><h2>${y}年${m}月</h2><button class="btn sm" onclick="calNav(1)" aria-label="次の月">›</button>
       <button class="btn sm" onclick="ui.calMonth=today().slice(0,7);render()">今日</button></div>
     ${buildCalendar(ui.calMonth)}
-    <div class="legend2" style="flex-wrap:wrap"><span><i></i>予約</span><span><i style="box-shadow:inset 3px 0 0 var(--accent)"></i>アプリからの予約</span><span><i style="background:var(--pill)"></i>予定（受付停止）</span><span><i class="bd"></i>誕生日</span><span class="muted">日付を押すと予約を追加できます</span></div>
+    <div class="legend2" style="flex-wrap:wrap"><span><i></i>予約</span><span><i class="mv"></i>日時を変更した予約（行き先の日付つき）</span><span><i style="background:var(--pill)"></i>予定</span><span><i class="bd"></i>誕生日</span><span class="muted">日付を押すと予約を追加できます</span></div>
   </section>`;
 }
+function rvById(id){return store.reservations.find(x=>x.id===id)||null;}
 function buildCalendar(ym){
   const [y,m]=ym.split('-').map(Number),startDow=new Date(y,m-1,1).getDay(),daysIn=new Date(y,m,0).getDate();
   const cells=Math.ceil((startDow+daysIn)/7)*7,td=today(),bdMap={};
@@ -1022,27 +1122,55 @@ function buildCalendar(ym){
   for(let i=0;i<cells;i++){
     const dn=i-startDow+1,inM=dn>=1&&dn<=daysIn,ds=inM?`${y}-${pad(m)}-${pad(dn)}`:'';
     const bds=inM?(bdMap[ds.slice(5)]||[]):[];
-    const rvs=inM?store.reservations.filter(r=>r.date===ds&&r.status!=='cancelled').sort(byTime):[];
+    /* 変更前の予約も「線で消して」行き先の日付と一緒に表示する */
+    const rvs=inM?store.reservations.filter(r=>r.date===ds&&r.status!=='cancelled').sort((a,b)=>(a.status==='moved')-(b.status==='moved')||byTime(a,b)):[];
     h+=`<div class="cal-cell ${inM?'':'other'} ${ds===td?'today':''}" ${inM?`onclick="openReservationForm('${ds}')"`:''}>
       ${inM?`<span class="dn">${dn}</span>`:''}
       ${bds.map(c=>`<span class="rv bd" onclick="event.stopPropagation();openCustomer('${c.id}')"><b>誕生日</b><span class="nm">${esc(c.name)}</span></span>`).join('')}
-      ${rvs.slice(0,3).map(r=>{const c=custById(r.customer_id);return `<span class="rv ${!r.customer_id?'blk':''} ${r.source==='customer'?'app':''}" onclick="event.stopPropagation();openReservationForm('${ds}','${r.id}')"><b>${esc(r.time||'')}</b><span class="nm">${c?esc(c.name):esc(r.note||'予定')}</span></span>`;}).join('')}
+      ${rvs.slice(0,3).map(calChip).join('')}
       ${rvs.length>3?`<span class="rv more">＋${rvs.length-3}件</span>`:''}</div>`;
   }
   return h+'</div>';
 }
+function calChip(r){
+  const c=custById(r.customer_id),name=c?esc(c.name):esc(r.note||'予定');
+  if(r.status==='moved'){
+    const to=rvById(r.moved_to),lbl=to?`${+to.date.slice(5,7)}/${+to.date.slice(8)}`:'';
+    return `<span class="rv moved" title="${name}：${to?fmtMd(to.date)+' '+esc(to.time||'')+' に変更':'変更済み'}" onclick="event.stopPropagation();openMovedInfo('${r.id}')"><s><b>${esc(r.time||'')}</b><span class="nm">${name}</span></s>${lbl?`<em>→${lbl}</em>`:''}</span>`;
+  }
+  const from=r.moved_from?rvById(r.moved_from):null;
+  return `<span class="rv ${!r.customer_id?'blk':''} ${from?'chg':''}" ${from?`title="${fmtMd(from.date)} ${esc(from.time||'')} から変更"`:''} onclick="event.stopPropagation();openReservationForm('${r.date}','${r.id}')">${from?`<em>${+from.date.slice(5,7)}/${+from.date.slice(8)}→</em>`:''}<b>${esc(r.time||'')}</b><span class="nm">${name}</span></span>`;
+}
+/* 変更前の予約を押したとき：どこへ変わったかを表示して、すぐ開けるようにする */
+function openMovedInfo(id){
+  const r=rvById(id),to=r&&rvById(r.moved_to),c=r&&custById(r.customer_id);if(!r)return;
+  modal(`<div class="modal-h"><h3>日時を変更した予約</h3><button class="x" aria-label="閉じる" onclick="closeModal()">×</button></div>
+    <div class="modal-b"><div class="note">${c?`<b>${esc(c.name)}</b> さま<br>`:''}<s>${fmtMd(r.date)} ${esc(r.time||'')}</s>
+      ${to?` → <b>${fmtMd(to.date)} ${esc(to.time||'')}</b> に変更しました`:' （変更先は削除されています）'}</div></div>
+    <div class="modal-f"><button class="btn" onclick="closeModal()">閉じる</button>${to?`<button class="btn primary" onclick="jumpToReservation('${to.id}')">変更後の予約を開く</button>`:''}</div>`);
+}
+function jumpToReservation(id){const r=rvById(id);if(!r)return;closeModal();ui.view='reservations';ui.cust=null;ui.calMonth=r.date.slice(0,7);render();openReservationForm(r.date,r.id);}
 function calNav(d){let [y,m]=ui.calMonth.split('-').map(Number);m+=d;if(m<1){m=12;y--;}if(m>12){m=1;y++;}ui.calMonth=`${y}-${pad(m)}`;render();}
 function custOptions(sel,includeWithdrawn){
   const list=includeWithdrawn?store.customers:actives();
   return list.map(c=>`<option value="${c.id}" ${sel===c.id?'selected':''}>${esc(c.name)}${c.kana?'（'+esc(c.kana)+'）':''}</option>`).join('');
 }
+/* 予約時刻は30分刻み */
+function timeOptions(sel){
+  const out=[];for(let m=7*60;m<=22*60;m+=30)out.push(`${pad(Math.floor(m/60))}:${pad(m%60)}`);
+  if(sel&&!out.includes(sel))out.push(sel);
+  return out.sort().map(t=>`<option ${t===sel?'selected':''}>${t}</option>`).join('');
+}
+function planChips(id,sel){return `<div class="chips" id="${id}">${CATS.map(([k,l])=>`<button type="button" class="chip ${sel.includes(k)?'on':''}" data-k="${k}" onclick="this.classList.toggle('on')">${l}</button>`).join('')}</div>`;}
+function chipsVal(id){return [...document.querySelectorAll('#'+id+' .chip.on')].map(b=>b.dataset.k);}
 function openReservationForm(dateStr,id){
-  const r=id?store.reservations.find(x=>x.id===id):null;
+  const r=id?rvById(id):null;
+  if(r&&r.status==='moved'){openMovedInfo(r.id);return;}
   if(!actives().length){toast('先に顧客を登録してください');return;}
   const selCid=r?(r.customer_id||'__none__'):'';const c0=r&&r.customer_id?custById(r.customer_id):null;
-  const st=r?rvState(r):null;
-  if(r&&r.source==='customer'&&!r.seen_at)dbWrite('reservations','update',{seen_at:new Date().toISOString()},r.id).then(()=>{r.seen_at=new Date().toISOString();renderNav();});
-  modal(`<div class="modal-h"><h3>${r?'予約':'予約を追加'}${r&&r.source==='customer'?' <span class="tag">アプリから</span>':''}</h3><button class="x" aria-label="閉じる" onclick="closeModal()">×</button></div>
+  const st=r?rvState(r):null,cats=r?rvCats(r):[],from=r&&r.moved_from?rvById(r.moved_from):null;
+  modal(`<div class="modal-h"><h3>${r?'予約':'予約を追加'}</h3><button class="x" aria-label="閉じる" onclick="closeModal()">×</button></div>
+    ${from?`<div class="modal-sub"><span><s>${fmtMd(from.date)} ${esc(from.time||'')}</s> から変更した予約です</span></div>`:''}
     <div class="modal-b">
       ${r&&r.customer_id&&r.date<=today()?`<div class="sec">この予約の流れ</div><div class="flow" style="margin-bottom:6px">
         <button class="step ${st.checkin?'done':'next'}" onclick="flowStep('${r.id}','checkin')">入店</button><span class="arr" aria-hidden="true">›</span>
@@ -1050,26 +1178,37 @@ function openReservationForm(dateStr,id){
         <button class="step ${st.pay?'done':st.checkin&&st.lesson?'next':''}" onclick="flowStep('${r.id}','pay')">会計</button></div>`:''}
       <div class="form" style="margin-top:8px">
       <div class="fld full"><label>お客様 *</label><select id="rv_cust" onchange="rvCustChange()"><option value="">選んでください</option>
-        <option value="__none__" ${selCid==='__none__'?'selected':''}>（お客様なし・予定／この時間は予約を受け付けない）</option>${custOptions(selCid,!!r)}</select></div>
+        <option value="__none__" ${selCid==='__none__'?'selected':''}>（お客様なし・予定）</option>${custOptions(selCid,!!r)}</select></div>
       <div class="fld"><label>予約日 *</label><input id="rv_date" type="date" value="${r?r.date:(dateStr||today())}"></div>
-      <div class="fld"><label>開始時刻</label><input id="rv_time" type="time" step="900" value="${r&&r.time?r.time:'10:00'}"></div>
-      <div class="fld"><label>プラン</label><select id="rv_category"><option value="">—</option>${CATS.map(([k,l])=>`<option value="${k}" ${(r?r.category:(c0&&custCats(c0)[0]))===k?'selected':''}>${l}</option>`).join('')}</select></div>
-      <div class="fld"><label>所要時間</label><div class="unit"><input id="rv_duration" type="number" value="${r&&r.duration?r.duration:50}"><span class="u">分</span></div></div>
-      <div class="fld full"><label>メモ</label><input id="rv_note" value="${r?esc(r.note||''):''}" placeholder="メニュー・備考など"></div>
-    </div></div>
+      <div class="fld"><label>開始時刻（30分刻み）</label><select id="rv_time">${timeOptions(r&&r.time?r.time:'10:00')}</select></div>
+      <div class="fld full"><label>プラン（複数選べます）</label>${planChips('rv_cats',r?cats:(c0?custCats(c0):[]))}</div>
+      <div class="fld"><label>所要時間</label><div class="unit"><input id="rv_duration" type="number" step="10" value="${r&&r.duration?r.duration:50}"><span class="u">分</span></div></div>
+      <div class="fld"><label>メモ</label><input id="rv_note" value="${r?esc(r.note||''):''}" placeholder="メニュー・備考など"></div>
+    </div>
+    ${r?`<p class="muted" style="font-size:12px;margin-top:12px">日付や時刻を変えて保存すると「日時の変更」として記録され、カレンダーに変更前（線で消し）と変更後の両方が表示されます。</p>`:''}</div>
     <div class="modal-f">${r?`<button class="btn danger" style="margin-right:auto" onclick="delReservation('${r.id}')">削除</button>`:''}
       <button class="btn" onclick="closeModal()">閉じる</button>
-      <button class="btn primary" id="rvbtn" onclick="saveReservation('${id||''}')">${r?'更新する':'予約する'}</button></div>`);
+      <button class="btn primary" id="rvbtn" onclick="saveReservation('${id||''}')">${r?'保存する':'予約する'}</button></div>`);
 }
-function rvCustChange(){const c=custById(document.getElementById('rv_cust').value);const sel=document.getElementById('rv_category');
-  if(c&&!sel.value){const k=custCats(c)[0];if(k)sel.value=k;}}
+function rvCustChange(){const c=custById(document.getElementById('rv_cust').value);if(!c||chipsVal('rv_cats').length)return;
+  const ks=custCats(c);document.querySelectorAll('#rv_cats .chip').forEach(b=>b.classList.toggle('on',ks.includes(b.dataset.k)));}
 async function saveReservation(id){
   const cid=document.getElementById('rv_cust').value,date=document.getElementById('rv_date').value;
   if(!cid||!date){toast('お客様と予約日を入力してください');return;}
-  const none=cid==='__none__';
-  const row={customer_id:none?null:cid,date,time:document.getElementById('rv_time').value||null,category:none?null:(document.getElementById('rv_category').value||null),
+  const none=cid==='__none__',cats=none?[]:chipsVal('rv_cats');
+  const row={customer_id:none?null:cid,date,time:document.getElementById('rv_time').value||null,category:cats[0]||null,categories:cats,
     duration:parseInt(document.getElementById('rv_duration').value)||null,note:document.getElementById('rv_note').value.trim()||(none?'予定':null)};
+  const old=id?rvById(id):null;
   const btn=document.getElementById('rvbtn');btn.disabled=true;
+  /* 日時が変わったら「変更」として、変更前を残して新しい予約を作る */
+  if(old&&(old.date!==row.date||(old.time||'')!==(row.time||''))&&store.migr12){
+    if(!await ask(`${fmtMd(old.date)} ${old.time||''} → ${fmtMd(row.date)} ${row.time||''}\nに日時を変更しますか？`,{ok:'変更する',danger:false})){btn.disabled=false;return;}
+    const res=await dbWrite('reservations','insert',Object.assign({},row,{moved_from:old.id,checked_in_at:null}));
+    if(res.error){toast('エラー: '+res.error.message);btn.disabled=false;return;}
+    const r2=await dbWrite('reservations','update',{status:'moved',moved_to:res.data&&res.data.id},old.id);
+    if(r2.error){toast('エラー: '+r2.error.message);btn.disabled=false;return;}
+    await loadAll();closeModal();toast(`${fmtMd(row.date)} ${row.time||''} に変更しました`);render();return;
+  }
   const {error}=id?await dbWrite('reservations','update',row,id):await dbWrite('reservations','insert',row);
   if(error){toast('エラー: '+error.message);btn.disabled=false;return;}
   await loadAll();closeModal();toast(id?'予約を更新しました':'予約を追加しました');render();
@@ -1091,7 +1230,7 @@ function viewLessons(){
     ${ss.length?`<div class="tw"><table class="tbl"><thead><tr><th>日付</th><th>お客様</th><th>プラン</th><th>メニュー</th><th class="r">体重</th><th class="r">体脂肪</th><th class="r">ウエスト</th><th>記録・アドバイス</th></tr></thead><tbody>
       ${ss.slice(0,150).map(s=>{const c=custById(s.customer_id),m=measureOn(s.customer_id,s.date);
         return `<tr class="click" onclick="openCustomer('${s.customer_id}','record')"><td class="nw">${fmtYmd(s.date)}</td><td class="nw b">${c?esc(c.name):'—'}</td>
-          <td>${s.category?`<span class="tag">${catLabel(s.category)}</span>`:'—'}</td><td>${esc(s.menu||'')}</td>
+          <td><span class="tags">${sesCats(s).map(k=>`<span class="tag">${catLabel(k)}</span>`).join('')||'—'}</span></td><td>${esc(s.menu||'')}</td>
           <td class="r">${m&&m.weight!=null?m.weight+'kg':'—'}</td><td class="r">${m&&m.body_fat!=null?m.body_fat+'%':'—'}</td><td class="r">${m&&m.waist!=null?m.waist+'cm':'—'}</td>
           <td class="muted">${esc(s.note||'')}${s.homework?`<div style="margin-top:4px"><span class="tag gray">セルフケア</span> ${esc(s.homework)}</div>`:''}</td></tr>`;}).join('')}
     </tbody></table></div>`:`<div class="empty">${q?'該当するレッスン記録がありません':'まだレッスン記録がありません'}</div>`}</section>`;
@@ -1100,14 +1239,14 @@ function openLessonForm(cid,opts){
   opts=opts||{};const r=opts.reservation||null;
   if(!actives().length){toast('先に顧客を登録してください');return;}
   const c=cid?custById(cid):null;
-  const defCat=r&&r.category?r.category:(c?custCats(c)[0]:'')||'training';
+  const defCats=r&&rvCats(r).length?rvCats(r):(c?custCats(c).slice(0,1):['training']);
   const last=c?custMeasures(c.id).slice(-1)[0]:null;
   modal(`<div class="modal-h"><h3>レッスン記録</h3><button class="x" aria-label="閉じる" onclick="closeModal()">×</button></div>
     ${c?`<div class="modal-sub"><span>${esc(c.name)} さま${r?`　${fmtMd(r.date)} ${esc(r.time||'')} の予約`:''}</span></div>`:''}
     <div class="modal-b"><div class="form">
       ${c?'':`<div class="fld full"><label>お客様 *</label><select id="s_cust"><option value="">選んでください</option>${custOptions('')}</select></div>`}
       <div class="fld"><label>実施日 *</label><input id="s_date" type="date" value="${r?r.date:today()}"></div>
-      <div class="fld"><label>プラン</label><select id="s_category">${CATS.map(([k,l])=>`<option value="${k}" ${defCat===k?'selected':''}>${l}</option>`).join('')}</select></div>
+      <div class="fld full"><label>プラン（複数選べます）</label>${planChips('s_cats',defCats)}</div>
       <div class="fld full"><label>メニュー</label><input id="s_menu" placeholder="例：マットピラティス／骨盤調整"></div>
       <div class="fld"><label>時間</label><div class="unit"><input id="s_duration" type="number" value="${r&&r.duration?r.duration:50}"><span class="u">分</span></div></div>
       <div class="fld full"><label>記録・アドバイス</label><textarea id="s_note" placeholder="実施内容・次回への課題など"></textarea></div>
@@ -1123,8 +1262,8 @@ async function saveLesson(cid,rid){
   cid=cid||(document.getElementById('s_cust')||{}).value;
   const date=document.getElementById('s_date').value;
   if(!cid||!date){toast('お客様と実施日を入力してください');return;}
-  const cat=document.getElementById('s_category').value;
-  const row={customer_id:cid,date,category:cat,menu:document.getElementById('s_menu').value.trim()||catLabel(cat),
+  const cats=chipsVal('s_cats');if(!cats.length){toast('プランを選んでください');return;}const cat=cats[0];
+  const row={customer_id:cid,date,category:cat,categories:cats,menu:document.getElementById('s_menu').value.trim()||catsLabel(cats),
     duration:parseInt(document.getElementById('s_duration').value)||null,note:document.getElementById('s_note').value.trim()||null,homework:document.getElementById('s_homework').value.trim()||null,reservation_id:rid||null};
   const mv={};let any=false;
   METRICS.forEach(([k])=>{const v=document.getElementById('m_'+k).value;mv[k]=v===''?null:parseFloat(v);if(v!=='')any=true;});
@@ -1221,76 +1360,115 @@ async function restorePayment(id){
   await loadAll();closeModal();toast('取り消しを元に戻しました');render();
 }
 
-/* ---- 会計の入力 ---- */
+/* ---- 会計の入力 ----
+   加圧・痩身：回数券を「使う」か「買う（5回）」。痩身を加圧の回数券で受けるときは差額を足す（痩身の利用として記録）
+   バスト：毎回金額を入力。商品：プロテイン・美容を複数選択。
+   割引：商品スタンプ券／紹介割／誕生日割／手入力の値引き。確定前にお客様向けの確認画面を出す。 */
 let pay=null;
 function openPayForm(cid,opts){
   opts=opts||{};const r=opts.reservation||null;
   if(!actives().length){toast('先に顧客を登録してください');return;}
-  pay={cid:cid||'',fixed:!!cid,date:r?r.date:today(),lines:[],coupon:false,couponCount:1,method:'cash',adjType:'',adjVal:'',note:'',rid:r?r.id:null,r};
-  if(cid){const c=custById(cid);const k=(r&&r.category)||custCats(c)[0];if(k)payAddKind(k,true);}
+  pay={cid:cid||'',fixed:!!cid,date:r?r.date:today(),r,rid:r?r.id:null,step:'edit',
+    plans:{},products:[],openKinds:{},stamp:false,stampCount:1,referral:false,birthday:false,adjType:'',adjVal:'',method:'cash',note:''};
+  if(cid)payInitPlans(r?rvCats(r):custCats(custById(cid)).slice(0,1));
   modal(`<div id="payModal"></div>`,'wide');payRender();
 }
 function payCust(){return pay.cid?custById(pay.cid):null;}
-function payAddKind(k,silent){
-  const c=payCust();
-  if(['training','slimming','bust'].includes(k)){
-    const pr=c?currentPlanPrice(c,k):null;
-    pay.lines.push({kind:k,name:catLabel(k)+'（契約料金）',price:pr||0,qty:1,product_id:null});
-  }else{
-    const p=productsOf(k)[0];
-    pay.lines.push(p?{kind:k,name:p.name,price:+p.price||0,qty:1,product_id:p.id}:{kind:k,name:catLabel(k),price:0,qty:1,product_id:null});
-  }
-  if(!silent)payRender();
+function payInitPlans(cats){
+  pay.plans={};
+  cats.forEach(k=>payPlanOn(k));
 }
-function payToggleKind(k){
-  if(pay.lines.some(l=>l.kind===k))pay.lines=pay.lines.filter(l=>l.kind!==k);else payAddKind(k,true);
+function payPlanOn(k){
+  const c=payCust();
+  if(k==='bust'){const last=livePays().filter(p=>p.customer_id===pay.cid).map(p=>payLinesOf(p).find(l=>l.kind==='bust')).find(Boolean);
+    pay.plans.bust={on:true,price:last?last.price:(c?currentPlanPrice(c,'bust')||0:0)};return;}
+  const usable=store.migr12&&pay.cid?pickSet(pay.cid,k,pay.date):null;
+  const size=priceCfg().size,unit=unitPrice(c,k);
+  pay.plans[k]={on:true,mode:usable?'use':'buy',useNow:true,price:unit*size,unit};
+}
+function payTogglePlan(k){if(pay.plans[k])delete pay.plans[k];else payPlanOn(k);payRender();}
+function paySetPlan(k,f,v){const P=pay.plans[k];if(!P)return;if(f==='price'){P.price=parseFloat(v)||0;paySum();return;}P[f]=v;payRender();}
+/* 明細を作る（回数券の残りは、同じ会計の中で使った分も引いて考える） */
+function payLines(){
+  const c=payCust(),out=[],taken={};
+  const pick=plan=>{const l=usableSets(pay.cid,pay.date).filter(s=>setRemain(s)-(taken[s.id]||0)>0);return l.find(s=>s.plan===plan)||l[0]||null;};
+  ['training','slimming'].forEach(k=>{const P=pay.plans[k];if(!P)return;
+    if(!store.migr12){out.push({kind:k,name:catLabel(k)+'（契約料金）',price:unitPrice(c,k),qty:1});return;}
+    if(P.mode==='use'){const s=pick(k);
+      if(!s){out.push({kind:k,name:`${catLabel(k)}（使える回数券がありません）`,price:0,qty:1,warn:true});return;}
+      taken[s.id]=(taken[s.id]||0)+1;const n=setUses(s).length+taken[s.id],sur=surchargeFor(s,k);
+      out.push({kind:k,name:`${catLabel(k)}（回数券 ${n}/${s.total}回目${s.plan!==k?`・${catLabel(s.plan)}の券＋差額`:''}）`,price:sur,qty:1,ticket:{op:'use',set_id:s.id,plan:k,surcharge:sur}});
+    }else{const size=priceCfg().size;
+      out.push({kind:k,name:`${catLabel(k)} 回数券（${size}回）`,price:+P.price||0,qty:1,ticket:{op:'buy',plan:k,unit:P.unit,size}});
+      if(P.useNow)out.push({kind:k,name:`${catLabel(k)}（回数券 1/${size}回目）`,price:0,qty:1,ticket:{op:'useNew',plan:k}});}
+  });
+  if(pay.plans.bust)out.push({kind:'bust',name:'バスト',price:+pay.plans.bust.price||0,qty:1});
+  pay.products.forEach(l=>out.push(l));
+  return out;
+}
+function payProductToggle(pid){
+  const i=pay.products.findIndex(l=>l.product_id===pid);
+  if(i>=0)pay.products.splice(i,1);else{const p=productById(pid);pay.products.push({kind:productKind(p),name:p.name,price:+p.price||0,qty:1,product_id:p.id});}
   payRender();
 }
-function payAddProduct(){
-  const list=store.products.filter(p=>p.active!==false);
-  if(!list.length){toast('設定 › 商品 で商品を登録してください');return;}
-  const p=list[0];pay.lines.push({kind:productKind(p),name:p.name,price:+p.price||0,qty:1,product_id:p.id});payRender();
-}
-function payLineSet(i,f,v){
-  const L=pay.lines[i];if(!L)return;
-  if(f==='product'){const p=productById(v);if(p){L.product_id=p.id;L.name=p.name;L.price=+p.price||0;L.kind=productKind(p);}payRender();return;}
-  if(f==='qty')L.qty=Math.max(1,parseInt(v)||1);
-  if(f==='price')L.price=parseFloat(v)||0;
-  paySum();
-}
+function payProductQty(pid,d){const l=pay.products.find(x=>x.product_id===pid);if(!l)return;l.qty=Math.max(1,l.qty+d);payRender();}
 function payCalc(){
-  const sub=pay.lines.reduce((s,l)=>s+(+l.price||0)*(+l.qty||1),0);
+  const lines=payLines(),sub=lines.reduce((s,l)=>s+(+l.price||0)*(+l.qty||1),0);
   const v=parseFloat(pay.adjVal)||0;let adj=0;
   if(pay.adjType==='minus')adj=-v;else if(pay.adjType==='minus_pct')adj=-Math.round(sub*v/100);else if(pay.adjType==='plus')adj=v;
-  const cs=pay.cid?couponState(pay.cid):null;
-  const cnt=pay.coupon&&cs&&cs.avail?Math.min(pay.couponCount,cs.avail):0;
-  const coupon=cnt*couponCfg().amount;
-  return {sub,adj,cnt,coupon,total:Math.max(0,Math.round(sub+adj-coupon))};
+  const c=payCust(),cs=c?couponState(c.id):null,pc=priceCfg();
+  const cnt=pay.stamp&&cs&&cs.avail?Math.min(pay.stampCount,cs.avail):0,stamp=cnt*couponCfg().amount;
+  const ref=pay.referral&&c?openCoupons(c.id)[0]:null,refAmt=ref?+ref.amount:0;
+  const bday=pay.birthday&&c?birthdayAvail(c,pay.date):0;
+  const extras=[];if(ref)extras.push({kind:'referral',amount:refAmt,coupon_id:ref.id,label:'紹介割'});if(bday)extras.push({kind:'birthday',amount:bday,year:pay.date.slice(0,4),label:'誕生日割'});
+  return {lines,sub,adj,cnt,stamp,extras,total:Math.max(0,Math.round(sub+adj-stamp-refAmt-bday))};
 }
 function payRender(){
   const box=document.getElementById('payModal');if(!box)return;
-  const c=payCust(),cs=c?couponState(c.id):null,kinds=new Set(pay.lines.map(l=>l.kind));
-  const prots=pay.lines.filter(l=>l.kind==='protein').reduce((s,l)=>s+l.qty,0);
+  if(pay.step==='confirm')return payConfirmRender(box);
+  const c=payCust(),cs=c?couponState(c.id):null,pc=priceCfg(),lines=payLines();
+  const tk=c&&store.migr12?ticketSummary(c.id):null,refs=c?openCoupons(c.id):[],bday=c?birthdayAvail(c,pay.date):0;
+  const prodCount=pay.products.reduce((s,l)=>s+l.qty,0);
+  const planBox=k=>{const P=pay.plans[k];if(!P)return '';
+    if(k==='bust')return `<div class="pbox"><div class="pbox-h"><b>バスト</b><span class="muted">毎回の金額を入力</span></div>
+      <div class="unit" style="max-width:220px"><input type="number" inputmode="numeric" value="${P.price}" oninput="paySetPlan('bust','price',this.value)"><span class="u">円</span></div></div>`;
+    if(!store.migr12)return `<div class="pbox"><div class="pbox-h"><b>${catLabel(k)}</b><span class="muted">契約料金 ${yen(unitPrice(c,k))}</span></div></div>`;
+    const usable=pay.cid?usableSets(pay.cid,pay.date):[],s=usable.find(x=>x.plan===k)||usable[0],sur=s?surchargeFor(s,k):0;
+    return `<div class="pbox"><div class="pbox-h"><b>${catLabel(k)}</b><span class="muted">1回 ${yen(unitPrice(c,k))}${k==='slimming'?'（全員一律）':''}</span></div>
+      <div class="seg sm" style="margin:2px 0 10px">
+        <button class="${P.mode==='use'?'on':''}" onclick="paySetPlan('${k}','mode','use')">回数券を使う${tk?`（残り${tk.remain}回）`:''}</button>
+        <button class="${P.mode==='buy'?'on':''}" onclick="paySetPlan('${k}','mode','buy')">回数券を買う（${pc.size}回）</button></div>
+      ${P.mode==='use'?(s?`<div class="note">${catLabel(s.plan)}の回数券を1回使います（残り${setRemain(s)}回${s.expires_on?`・期限 ${fmtYmd(s.expires_on)}`:''}）。${sur?`<br>痩身は${catLabel(s.plan)}の券との差額 <b>${yen(sur)}</b> をいただきます（痩身の利用として記録）。`:''}</div>`
+          :`<div class="note" style="border-color:var(--accent)">使える回数券がありません。「回数券を買う」を選んでください。</div>`)
+        :`<div class="form" style="grid-template-columns:1fr auto;align-items:end"><div class="fld"><label>${pc.size}回分の金額</label><div class="unit"><input type="number" inputmode="numeric" value="${P.price}" oninput="paySetPlan('${k}','price',this.value)"><span class="u">円</span></div></div>
+          <label class="check" style="margin:0 0 10px"><input type="checkbox" ${P.useNow?'checked':''} onchange="paySetPlan('${k}','useNow',this.checked)"> 今日の1回目に使う</label></div>
+          <div class="muted" style="font-size:12px;margin-top:6px">期限は、顧客の「会計・料金」タブの回数券から入力できます。</div>`}</div>`;};
+  const prodPicker=kind=>{const list=productsOf(kind);if(!pay.openKinds[kind])return '';
+    return `<div class="pbox"><div class="pbox-h"><b>${catLabel(kind)}</b><span class="muted">複数選べます</span></div>
+      ${list.length?`<ul class="plist">${list.map(p=>{const sel=pay.products.find(l=>l.product_id===p.id);
+        return `<li class="${sel?'on':''}"><button class="pick" onclick="payProductToggle('${p.id}')"><span class="ck" aria-hidden="true"></span><span class="pn">${esc(p.name)}</span><span class="pp">${yen(p.price)}</span></button>
+          ${sel?`<span class="qty"><button aria-label="減らす" onclick="payProductQty('${p.id}',-1)">−</button><b>${sel.qty}</b><button aria-label="増やす" onclick="payProductQty('${p.id}',1)">＋</button></span>`:''}</li>`;}).join('')}</ul>`
+        :`<div class="muted" style="font-size:13px">設定 › 商品 で${catLabel(kind)}の商品を登録してください。</div>`}</div>`;};
   box.outerHTML=`<div id="payModal" style="display:contents">
     <div class="modal-h"><h3>会計</h3><button class="x" aria-label="閉じる" onclick="closeModal()">×</button></div>
-    ${c&&pay.fixed?`<div class="modal-sub"><span>${esc(c.name)} さま${pay.r?`　${fmtMd(pay.r.date)} ${esc(pay.r.time||'')} の予約`:''}</span>${cs&&cs.avail?`<span class="tag">割引券 ${cs.avail}枚</span>`:''}</div>`:''}
+    ${c&&pay.fixed?`<div class="modal-sub"><span>${esc(c.name)} さま${pay.r?`　${fmtMd(pay.r.date)} ${esc(pay.r.time||'')} の予約`:''}</span>
+      <span class="tags">${tk&&tk.remain?`<span class="tag gray">回数券 残り${tk.remain}回</span>`:''}${cs&&cs.avail?`<span class="tag">スタンプ券 ${cs.avail}枚</span>`:''}${refs.length?'<span class="tag">紹介割</span>':''}${bday?'<span class="tag">誕生月</span>':''}</span></div>`:''}
     <div class="modal-b">
-      ${pay.fixed?'':`<div class="sec">お客様</div><select class="plain" style="width:100%;border-radius:11px;padding:11px 13px;font-size:15px" onchange="pay.cid=this.value;pay.coupon=false;payRefreshPlanPrices();payRender()"><option value="">選んでください</option>${custOptions(pay.cid)}</select>`}
-      <div class="sec">種別（複数選べます）</div>
-      <div class="chips">${KINDS.map(([k,l])=>`<button class="chip ${kinds.has(k)?'on':''}" onclick="payToggleKind('${k}')">${l}</button>`).join('')}</div>
-      <div class="sec">内容</div>
-      ${pay.lines.length?`<ul class="lines">${pay.lines.map((l,i)=>{
-        const isPlan=['training','slimming','bust'].includes(l.kind);
-        const opts=store.products.filter(p=>p.active!==false);
-        return `<li>${isPlan||!l.product_id?`<span class="nm">${esc(l.name)}</span>`
-          :`<select onchange="payLineSet(${i},'product',this.value)">${opts.map(p=>`<option value="${p.id}" ${p.id===l.product_id?'selected':''}>${esc(p.name)}</option>`).join('')}</select>`}
-          <div class="unit"><input type="number" min="1" inputmode="numeric" value="${l.qty}" oninput="payLineSet(${i},'qty',this.value)"><span class="u">個</span></div>
-          <div class="unit"><input type="number" inputmode="numeric" value="${l.price}" oninput="payLineSet(${i},'price',this.value)"><span class="u">円</span></div>
-          <button class="x" title="削除" aria-label="この行を削除" onclick="pay.lines.splice(${i},1);payRender()">×</button></li>`;}).join('')}</ul>`
-        :'<div class="muted" style="font-size:13px">上の種別を選ぶと、契約料金や商品が入ります。</div>'}
-      <button class="addline" onclick="payAddProduct()">＋ 商品を追加</button>
-      ${cs&&cs.avail&&store.migr6?`<div class="coupon-row"><span>プロテイン割引券を使う（${yen(cs.amount)}${cs.avail>1?` × <select onchange="pay.couponCount=+this.value;paySum()" style="border:1px solid var(--accent);border-radius:8px;padding:2px 6px;background:#fff">${Array.from({length:cs.avail},(_,i)=>`<option ${pay.couponCount===i+1?'selected':''}>${i+1}</option>`).join('')}</select> 枚`:''}）</span>
-        <label class="switch"><input type="checkbox" ${pay.coupon?'checked':''} onchange="pay.coupon=this.checked;paySum()"><span></span></label></div>`:''}
+      ${pay.fixed?'':`<div class="sec">お客様</div><select class="plain" style="width:100%;border-radius:11px;padding:11px 13px;font-size:15px" onchange="pay.cid=this.value;pay.stamp=pay.referral=pay.birthday=false;payInitPlans(custCats(custById(this.value)||{}).slice(0,1));payRender()"><option value="">選んでください</option>${custOptions(pay.cid)}</select>`}
+      <div class="sec">メニュー（複数選べます）</div>
+      <div class="chips">${CATS.map(([k,l])=>`<button class="chip ${pay.plans[k]?'on':''}" onclick="payTogglePlan('${k}')">${l}</button>`).join('')}</div>
+      ${CATS.map(([k])=>planBox(k)).join('')}
+      <div class="sec">商品（複数選べます）</div>
+      <div class="chips">${[['protein','プロテイン'],['beauty','美容']].map(([k,l])=>{const n=pay.products.filter(x=>x.kind===k).reduce((s,x)=>s+x.qty,0);
+        return `<button class="chip ${pay.openKinds[k]||n?'on':''}" onclick="pay.openKinds['${k}']=!pay.openKinds['${k}'];payRender()">${l}${n?` ${n}`:''}</button>`;}).join('')}</div>
+      ${prodPicker('protein')}${prodPicker('beauty')}
+      ${c&&((cs&&cs.avail&&store.migr6)||refs.length||bday)?`<div class="sec">割引</div>
+        ${cs&&cs.avail&&store.migr6?`<div class="coupon-row"><span>商品スタンプ券（${yen(cs.amount)}${cs.avail>1?` × <select onchange="pay.stampCount=+this.value;paySum()" style="border:1px solid var(--accent);border-radius:8px;padding:2px 6px;background:var(--paper)">${Array.from({length:cs.avail},(_,i)=>`<option ${pay.stampCount===i+1?'selected':''}>${i+1}</option>`).join('')}</select> 枚`:''}）</span>
+          <label class="switch"><input type="checkbox" ${pay.stamp?'checked':''} onchange="pay.stamp=this.checked;paySum()" aria-label="商品スタンプ券を使う"><span></span></label></div>`:''}
+        ${refs.length?`<div class="coupon-row"><span>紹介割（${yen(refs[0].amount)}）${refs[0].note?`<small style="margin-left:6px">${esc(refs[0].note)}</small>`:''}</span>
+          <label class="switch"><input type="checkbox" ${pay.referral?'checked':''} onchange="pay.referral=this.checked;paySum()" aria-label="紹介割を使う"><span></span></label></div>`:''}
+        ${bday?`<div class="coupon-row"><span>誕生日割（${yen(bday)}・誕生月に1回）</span>
+          <label class="switch"><input type="checkbox" ${pay.birthday?'checked':''} onchange="pay.birthday=this.checked;paySum()" aria-label="誕生日割を使う"><span></span></label></div>`:''}`:''}
       <div class="sec">値引き・追加</div>
       <div class="adj"><select onchange="pay.adjType=this.value;paySum()">
         ${[['','なし'],['minus','値引き（円）'],['minus_pct','値引き（％）'],['plus','追加（円）']].map(([k,l])=>`<option value="${k}" ${pay.adjType===k?'selected':''}>${l}</option>`).join('')}</select>
@@ -1298,49 +1476,95 @@ function payRender(){
       <div class="sec">お支払い方法</div>
       <div class="chips">${METHODS.map(([k,l])=>`<button class="chip ${pay.method===k?'on':''}" onclick="pay.method='${k}';payRender()">${l}</button>`).join('')}</div>
       <div class="form" style="margin-top:14px">
-        <div class="fld"><label>会計日</label><input type="date" value="${pay.date}" onchange="pay.date=this.value"></div>
+        <div class="fld"><label>会計日</label><input type="date" value="${pay.date}" onchange="pay.date=this.value;payRender()"></div>
         <div class="fld"><label>メモ</label><input value="${esc(pay.note)}" oninput="pay.note=this.value" placeholder="備考"></div></div>
       <div class="sum" id="paySum"></div>
     </div>
-    <div class="modal-f"><span class="grow">${prots&&c?`プロテインのスタンプが ${prots}個 たまります`:''}</span>
+    <div class="modal-f"><span class="grow">${prodCount&&c?`商品スタンプが ${prodCount}個 たまります`:''}</span>
       <button class="btn" onclick="closeModal()">キャンセル</button>
-      <button class="btn primary" id="pbtn" onclick="savePay()">会計を確定</button></div></div>`;
+      <button class="btn primary" onclick="payToConfirm()">確認へ進む</button></div></div>`;
   paySum();
 }
-function payRefreshPlanPrices(){const c=payCust();if(!c)return;pay.lines.forEach(l=>{if(['training','slimming','bust'].includes(l.kind)){const p=currentPlanPrice(c,l.kind);l.price=p||0;}});}
 function paySum(){
   const el=document.getElementById('paySum');if(!el)return;const k=payCalc();
-  el.innerHTML=`<div><span>小計</span><span>${yen(k.sub)}</span></div>
-    ${k.coupon?`<div><span>割引券（${k.cnt}枚）</span><span>− ${yen(k.coupon)}</span></div>`:''}
+  el.innerHTML=`${k.lines.map(l=>`<div><span>${esc(l.name)}${l.qty>1?` ×${l.qty}`:''}</span><span>${yen(l.price*l.qty)}</span></div>`).join('')}
+    ${k.cnt?`<div><span>商品スタンプ券（${k.cnt}枚）</span><span>− ${yen(k.stamp)}</span></div>`:''}
+    ${k.extras.map(x=>`<div><span>${x.label}</span><span>− ${yen(x.amount)}</span></div>`).join('')}
     ${k.adj?`<div><span>${k.adj<0?'値引き':'追加'}</span><span>${k.adj<0?'−':'＋'} ${yen(Math.abs(k.adj))}</span></div>`:''}
     <div class="grand"><span>合計</span><b>${yen(k.total)}</b></div>`;
 }
-async function savePay(){
-  const c=payCust();
+function payToConfirm(){
+  const c=payCust(),k=payCalc();
   if(!c){toast('お客様を選んでください');return;}
-  if(!pay.lines.length){toast('種別か商品を選んでください');return;}
+  if(!k.lines.length){toast('メニューか商品を選んでください');return;}
+  if(k.lines.some(l=>l.warn)){toast('使える回数券がありません。「回数券を買う」を選んでください');return;}
   if(!pay.date){toast('会計日を入力してください');return;}
-  const k=payCalc(),kinds=[...new Set(pay.lines.map(l=>l.kind))];
+  pay.step='confirm';payRender();
+}
+/* お客様に見せる確認画面 */
+function payConfirmRender(box){
+  const c=payCust(),k=payCalc();
+  box.outerHTML=`<div id="payModal" style="display:contents">
+    <div class="modal-b cf">
+      <div class="cf-studio">${esc(studioName())}</div>
+      <div class="cf-name">${esc(c.name)} さま</div>
+      <ul class="cf-lines">${k.lines.map(l=>`<li><span>${esc(l.name)}${l.qty>1?` <small>×${l.qty}</small>`:''}</span><b>${yen(l.price*l.qty)}</b></li>`).join('')}
+        ${k.cnt?`<li class="dc"><span>商品スタンプ券</span><b>− ${yen(k.stamp)}</b></li>`:''}
+        ${k.extras.map(x=>`<li class="dc"><span>${x.label}</span><b>− ${yen(x.amount)}</b></li>`).join('')}
+        ${k.adj?`<li class="dc"><span>${k.adj<0?'値引き':'追加'}</span><b>${k.adj<0?'−':'＋'} ${yen(Math.abs(k.adj))}</b></li>`:''}</ul>
+      <div class="cf-total"><span>お支払い金額</span><b>${yen(k.total)}</b></div>
+      <div class="cf-method">お支払い方法：${methodLabel(pay.method)}</div>
+    </div>
+    <div class="modal-f"><button class="btn" onclick="pay.step='edit';payRender()">戻って直す</button>
+      <button class="btn primary" id="pbtn" style="min-width:180px" onclick="savePay()">この内容で確定する</button></div></div>`;
+}
+/* 決済の音（その場で合成。音声ファイル不要） */
+function payChime(){
+  try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;const a=new C(),t0=a.currentTime;
+    [[1046.5,0],[1568,.11]].forEach(([f,t])=>{const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=f;
+      g.gain.setValueAtTime(.0001,t0+t);g.gain.exponentialRampToValueAtTime(.22,t0+t+.015);g.gain.exponentialRampToValueAtTime(.0001,t0+t+.7);
+      o.connect(g);g.connect(a.destination);o.start(t0+t);o.stop(t0+t+.75);});
+    setTimeout(()=>a.close(),1400);}catch(e){}
+}
+async function savePay(){
+  const c=payCust(),k=payCalc(),kinds=[...new Set(k.lines.map(l=>l.kind))];
+  const btn=document.getElementById('pbtn');if(btn){btn.disabled=true;btn.textContent='処理中…';}
   const row={customer_id:c.id,customer_name:c.name,date:pay.date,amount:k.total,category:kinds[0]||null,categories:kinds,
-    items:pay.lines.map(l=>({kind:l.kind,name:l.name,price:+l.price||0,qty:+l.qty||1,product_id:l.product_id||null})),
+    items:k.lines.map(l=>({kind:l.kind,name:l.name,price:+l.price||0,qty:+l.qty||1,product_id:l.product_id||null,ticket:l.ticket?l.ticket.op:undefined})),
     subtotal:k.sub,adjust_amount:k.adj,discount_type:pay.adjType||null,discount_value:pay.adjType?(parseFloat(pay.adjVal)||0):null,
-    coupons_used:k.cnt,coupon_discount:k.coupon,method:pay.method,reservation_id:pay.rid,note:pay.note.trim()||null};
-  const btn=document.getElementById('pbtn');btn.disabled=true;btn.textContent='保存中…';
+    coupons_used:k.cnt,coupon_discount:k.stamp,discounts:k.extras.map(({label,...x})=>x),method:pay.method,reservation_id:pay.rid,note:pay.note.trim()||null};
   const res=await dbWrite('payments','insert',row);
-  if(res.error){toast('エラー: '+res.error.message);btn.disabled=false;btn.textContent='会計を確定';return;}
-  /* プロテインは購入時期の管理にも自動で記録 */
+  if(res.error){toast('エラー: '+res.error.message);if(btn){btn.disabled=false;btn.textContent='この内容で確定する';}return;}
   const pid=res.data&&res.data.id;
+  payChime();
+  /* 回数券：買った分・使った分を記録 */
+  if(store.migr12){
+    const newSets={};
+    for(const l of k.lines.filter(l=>l.ticket&&l.ticket.op==='buy')){
+      const r2=await dbWrite('ticket_sets','insert',{customer_id:c.id,plan:l.ticket.plan,total:l.ticket.size,unit_price:l.ticket.unit,price:l.price,payment_id:pid,purchased_on:pay.date});
+      if(r2.data)newSets[l.ticket.plan]=r2.data.id;
+    }
+    for(const l of k.lines.filter(l=>l.ticket&&(l.ticket.op==='use'||l.ticket.op==='useNew'))){
+      const sid=l.ticket.op==='use'?l.ticket.set_id:newSets[l.ticket.plan];if(!sid)continue;
+      await dbWrite('ticket_uses','insert',{set_id:sid,customer_id:c.id,used_on:pay.date,plan:l.ticket.plan,surcharge:+l.price||0,payment_id:pid,reservation_id:pay.rid});
+    }
+    for(const x of k.extras.filter(x=>x.kind==='referral'))await dbWrite('coupons','update',{used_payment_id:pid,used_on:pay.date},x.coupon_id);
+  }
+  /* プロテインは購入時期の管理にも自動で記録 */
   const lastPer=(custProteins(c.id)[0]||{}).per_day||1;
-  for(const l of pay.lines.filter(l=>l.kind==='protein')){
+  for(const l of k.lines.filter(l=>l.kind==='protein')){
     const p=l.product_id?productById(l.product_id):null;
     await dbWrite('proteins','insert',{customer_id:c.id,purchase_date:pay.date,product_id:l.product_id||null,
       volume_g:((p&&+p.volume_g)||PROTEIN_BAG_G)*(+l.qty||1),serving_g:(p&&+p.serving_g)||PROTEIN_SERVING_G,per_day:lastPer,payment_id:pid||null});
   }
   const before=couponState(c.id).avail;
-  await loadAll();closeModal();
-  const after=couponState(c.id);
-  toast(after.avail>before-k.cnt?`会計を記録しました。割引券（${yen(after.amount)}）が発行されました`:'会計を記録しました');
-  render();
+  await loadAll();
+  const after=couponState(c.id),issued=after.avail>before-k.cnt;
+  const box=document.getElementById('payModal');
+  if(box)box.outerHTML=`<div id="payModal" style="display:contents"><div class="modal-b cf cf-done"><div class="cf-check" aria-hidden="true"></div>
+    <div class="cf-total" style="border:0;margin-top:6px"><span>お支払いが完了しました</span><b>${yen(k.total)}</b></div>
+    ${issued?`<div class="cf-method">商品スタンプ券（${yen(after.amount)}）が発行されました</div>`:''}</div></div>`;
+  setTimeout(()=>{closeModal();render();toast('会計を記録しました');},1500);
 }
 
 /* ================= 売上 ================= */
@@ -1405,7 +1629,22 @@ function viewSales(){
     </tbody><tfoot><tr><td>合計</td><td class="r">${yen(tot.amt)}</td>${mode==='day'?'':'<td></td>'}<td class="r">${tot.cnt}</td><td class="r">${tot.cnt?yen(tot.amt/tot.cnt):'—'}</td>
       <td class="r">${tot.cust}</td><td class="r">${tot.cust?yen(tot.amt/tot.cust):'—'}</td><td class="r">${yen(tot.cash)}</td><td class="r">${yen(tot.cashless)}</td><td class="r">${ui.salesKind?'—':yen(tot.disc)}</td></tr></tfoot></table></div>
       <p class="muted" style="font-size:12px;margin-top:10px">「今月」「今年」の比較は、前の期間の同じ日までと比べています。現金・キャッシュレスは、支払方法を記録した会計のみ集計されます。</p>`
-    :'<div class="empty">この期間の会計はありません</div>'}</section>`;
+    :'<div class="empty">この期間の会計はありません</div>'}</section>
+  ${['protein','beauty'].includes(ui.salesKind)?productSales(lp.filter(p=>periods.some(pr=>pr.match(p))),mode==='day'?ui.salesYm.replace('-','年')+'月':mode==='month'?ui.salesY+'年':'年別（6年間）'):''}`;
+}
+/* 商品ごとの売上（割引は按分） */
+function productSales(ps,range){
+  const kind=ui.salesKind,m={};
+  ps.forEach(p=>{const L=payLinesOf(p),sum=L.reduce((s,l)=>s+l.price*l.qty,0),f=sum?(+p.amount||0)/sum:0;
+    L.filter(l=>l.kind===kind).forEach(l=>{const pr=l.product_id&&store.products.find(x=>x.id===l.product_id);
+      const k=pr?pr.id:(l.name||catLabel(kind));const r=m[k]||(m[k]={name:pr?pr.name:(l.name||catLabel(kind)),qty:0,amt:0,cust:new Set()});
+      r.qty+=l.qty;r.amt+=l.price*l.qty*f;r.cust.add(p.customer_id||('x'+p.id));});});
+  const rows=Object.values(m).sort((a,b)=>b.amt-a.amt),tot=rows.reduce((s,r)=>s+r.amt,0),max=rows.length?rows[0].amt||1:1;
+  return `<section class="card"><div class="ch"><h2>商品別の売上<span>${catLabel(kind)}・${range}</span></h2></div>
+    ${rows.length?`<div class="tw"><table class="tbl pbar"><thead><tr><th>商品</th><th class="r">個数</th><th class="r">人数</th><th class="r">売上</th><th class="r">構成比</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td class="b">${esc(r.name)}<i style="--w:${Math.max(2,Math.round(r.amt/max*100))}%" aria-hidden="true"></i></td><td class="r">${r.qty}</td><td class="r">${r.cust.size}</td><td class="r b">${yen(r.amt)}</td><td class="r">${tot?Math.round(r.amt/tot*100):0}%</td></tr>`).join('')}
+    </tbody></table></div><p class="muted" style="font-size:12px;margin-top:10px">割引は、会計の金額の割合で各商品に分けて計算しています。</p>`
+    :'<div class="empty">この期間の販売はありません</div>'}</section>`;
 }
 function salesShift(d){
   if(ui.salesMode==='day'){let [y,m]=ui.salesYm.split('-').map(Number);m+=d;if(m<1){m=12;y--;}if(m>12){m=1;y++;}ui.salesYm=`${y}-${pad(m)}`;}
@@ -1610,7 +1849,7 @@ function recordPanel(c){
   <section class="card"><div class="ch"><h2>記録<span>${rows.length}件</span></h2><div class="actions">
     <button class="btn sm" onclick="openMeasureForm('${c.id}')">計測だけ記録</button><button class="btn sm primary" onclick="openLessonForm('${c.id}')">＋ レッスン記録</button></div></div>
     ${rows.length?`<div class="tw"><table class="tbl"><thead><tr><th>日付</th><th>プラン</th><th>メニュー</th>${METRICS.map(m=>`<th class="r">${m[1]}</th>`).join('')}<th>記録・アドバイス</th><th></th></tr></thead><tbody>
-      ${rows.map(({date,s,m})=>`<tr><td class="nw">${fmtYmd(date)}</td><td>${s&&s.category?`<span class="tag">${catLabel(s.category)}</span>`:s?'—':'<span class="tag gray">計測のみ</span>'}</td>
+      ${rows.map(({date,s,m})=>`<tr><td class="nw">${fmtYmd(date)}</td><td>${s&&sesCats(s).length?`<span class="tags">${sesCats(s).map(k=>`<span class="tag">${catLabel(k)}</span>`).join('')}</span>`:s?'—':'<span class="tag gray">計測のみ</span>'}</td>
         <td>${s?esc(s.menu||''):''}</td>${METRICS.map(([k])=>`<td class="r">${m&&m[k]!=null?m[k]:'<span class="muted">—</span>'}</td>`).join('')}
         <td class="muted">${esc((s&&s.note)||(m&&m.note)||'')}${s&&s.homework?`<div style="margin-top:4px"><span class="tag gray">セルフケア</span> ${esc(s.homework)}</div>`:''}</td><td class="r"><a class="link del" onclick="delRecord('${s?s.id:''}','${m?m.id:''}')">削除</a></td></tr>`).join('')}
     </tbody></table></div>`:'<div class="empty">まだ記録がありません</div>'}</section>`;
@@ -1620,10 +1859,46 @@ function billingPanel(c){
   const plans=CATS.filter(([k])=>c['cat_'+k]).map(([k,l])=>{const h=planHistory(c.id,k);
     return `<div><div style="display:flex;justify-content:space-between;align-items:baseline"><span class="tag">${l}</span><b style="font-size:18px">${yen(currentPlanPrice(c,k))}</b></div>
       ${h.length?`<div class="hist">${h.map((p,i)=>`<div style="${i===0?'color:var(--ink);font-weight:700':''}"><span>${fmtYmd(p.effective_date)}〜</span><span>${yen(p.price)}</span></div>`).join('')}</div>`:'<div class="hist">変更履歴はありません</div>'}</div>`;}).join('');
-  return `<section class="card"><div class="ch"><h2>契約プラン・料金<span>料金を変えると履歴に残ります</span></h2></div>
+  return `${ticketPanel(c)}<section class="card"><div class="ch"><h2>契約プラン・料金<span>料金を変えると履歴に残ります（痩身は全員一律 ${yen(priceCfg().slim)}）</span></h2></div>
     ${plans?`<div class="plancards">${plans}</div>`:'<div class="muted" style="font-size:13px">プランが未設定です。「編集」から設定できます。</div>'}</section>
   <section class="card"><div class="ch"><h2>会計の履歴<span>${pays.length}件</span></h2>${c.withdrawn_at?'':`<button class="btn sm primary" onclick="openPayForm('${c.id}')">＋ 会計</button>`}</div>
     ${pays.length?payTable(pays,false):'<div class="empty">まだ会計の記録がありません</div>'}</section>`;
+}
+/* ---- 回数券（顧客の会計・料金タブ） ---- */
+function ticketPanel(c){
+  if(!store.migr12)return `<div class="banner">回数券・紹介割を使うには、データベースの更新（<b>supabase-migration-12.sql</b>）が必要です。</div>`;
+  const sets=custSets(c.id).slice().sort((a,b)=>b.purchased_on.localeCompare(a.purchased_on)),sum=ticketSummary(c.id);
+  return `<section class="card"><div class="ch"><h2>回数券<span>${sum.remain?`使える残り ${sum.remain}回`:'使える回数券はありません'}</span></h2></div>
+    ${sets.length?`<div class="tkt-list">${sets.map(s=>{const used=setUses(s),rem=setRemain(s),exp=setExpired(s),logs=(store.expiryLog||[]).filter(l=>l.set_id===s.id);
+      const left=s.expires_on?daysBetween(today(),s.expires_on):null;
+      return `<div class="tkt ${rem===0||exp?'done':''}">
+        <div class="tkt-h"><b>${catLabel(s.plan)} ${s.total}回券</b><span class="muted">${fmtYmd(s.purchased_on)} 購入・${yen(s.price)}</span></div>
+        <div class="tkt-dots" aria-label="${s.total}回中${used.length}回使用">${Array.from({length:s.total},(_,i)=>`<i class="${i<used.length?'on':''}"></i>`).join('')}<span>残り <b>${rem}</b>回</span></div>
+        <div class="tkt-exp">期限：${s.expires_on?`<b class="${exp||left<=14?'hot':''}">${fmtYmd(s.expires_on)}</b>${exp?'（期限切れ）':left<=30?`（あと${left}日）`:''}`:'<span class="muted">未設定</span>'}
+          <a class="link" style="margin-left:10px" onclick="openExpiryForm('${s.id}')">${s.expires_on?'期限を変更':'期限を入力'}</a></div>
+        ${logs.length?`<details class="tkt-log"><summary>期限の変更履歴（${logs.length}件）</summary>${logs.map(l=>`<div>${fmtYmd(String(l.changed_at).slice(0,10))}：${l.old_date?fmtYmd(l.old_date):'未設定'} → ${l.new_date?fmtYmd(l.new_date):'未設定'}${l.note?`（${esc(l.note)}）`:''}</div>`).join('')}</details>`:''}
+        ${used.length?`<details class="tkt-log"><summary>使った記録（${used.length}回）</summary>${used.map((u,i)=>`<div>${i+1}回目　${fmtYmd(u.used_on)}　${catLabel(u.plan)}${+u.surcharge?`（差額 ${yen(u.surcharge)}）`:''}</div>`).join('')}</details>`:''}
+      </div>`;}).join('')}</div>`:'<div class="muted" style="font-size:13px">回数券は、会計で「回数券を買う」を選ぶと作られます。</div>'}</section>`;
+}
+function openExpiryForm(id){
+  const s=(store.ticketSets||[]).find(x=>x.id===id);if(!s)return;
+  modal(`<div class="modal-h"><h3>回数券の期限</h3><button class="x" aria-label="閉じる" onclick="closeModal()">×</button></div>
+    <div class="modal-sub"><span>${catLabel(s.plan)} ${s.total}回券（${fmtYmd(s.purchased_on)} 購入）</span></div>
+    <div class="modal-b"><div class="form">
+      <div class="fld"><label>期限</label><input id="ex_date" type="date" value="${esc(s.expires_on||'')}"></div>
+      <div class="fld"><label>すぐ入れる</label><div class="chips">${[1,2,3,6].map(n=>`<button type="button" class="chip" onclick="document.getElementById('ex_date').value=addMonths('${s.purchased_on}',${n})">購入から${n}か月</button>`).join('')}</div></div>
+      <div class="fld full"><label>変更の理由（任意）</label><input id="ex_note" placeholder="例：体調不良のため延長"></div></div>
+      <p class="muted" style="font-size:12px;margin-top:12px">変更すると履歴に残ります。</p></div>
+    <div class="modal-f"><button class="btn" onclick="closeModal()">キャンセル</button><button class="btn primary" onclick="saveExpiry('${id}')">保存する</button></div>`);
+}
+function addMonths(s,n){const d=new Date(s+'T00:00:00');d.setMonth(d.getMonth()+n);return ymd(d);}
+async function saveExpiry(id){
+  const s=(store.ticketSets||[]).find(x=>x.id===id),nd=document.getElementById('ex_date').value||null;
+  if((s.expires_on||null)===nd){closeModal();return;}
+  const {error}=await dbWrite('ticket_sets','update',{expires_on:nd},id);
+  if(error){toast('エラー: '+error.message);return;}
+  await dbWrite('ticket_expiry_log','insert',{set_id:id,old_date:s.expires_on||null,new_date:nd,note:document.getElementById('ex_note').value.trim()||null});
+  await loadAll();closeModal();render();toast('期限を保存しました');
 }
 function proteinPanel(c){
   const list=custProteins(c.id),latest=list[0],calc=latest?proteinCalc(latest):null,cs=couponState(c.id);
@@ -1697,6 +1972,8 @@ function openCustomerForm(id){
         ${CATS.map(([k,l])=>`<div style="display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center;margin-bottom:8px">
           <label class="check" style="margin:0;color:var(--ink)"><input type="checkbox" id="f_cat_${k}" ${c['cat_'+k]?'checked':''}> ${l}</label>
           <div class="unit"><input id="f_price_${k}" type="number" inputmode="numeric" value="${id?(currentPlanPrice(c,k)??''):''}" placeholder="料金"><span class="u">円</span></div></div>`).join('')}</div>
+      ${store.migr12?(c.referred_by?`<div class="fld full"><label>紹介者</label><select id="f_ref" disabled><option>${esc((custById(c.referred_by)||{}).name||"（削除済み）")} さん（紹介割は発行済み）</option></select></div>`
+        :`<div class="fld full"><label>紹介者（選ぶと、お二人に紹介割 ${yen(priceCfg().referral)} の割引券を発行します）</label><select id="f_ref"><option value="">なし</option>${actives().filter(x=>x.id!==id).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}</select></div>`):""}
       <div class="fld full"><label>目標</label><input id="f_goal" value="${esc(c.goal||'')}" placeholder="例：姿勢改善・体幹強化"></div>
       <div class="fld"><label>目標体重</label><div class="unit"><input id="f_goal_weight" type="number" step="0.1" inputmode="decimal" value="${c.goal_weight??''}"><span class="u">kg</span></div></div>
       <div class="fld"><label>目標体脂肪率</label><div class="unit"><input id="f_goal_body_fat" type="number" step="0.1" inputmode="decimal" value="${c.goal_body_fat??''}"><span class="u">%</span></div></div>
@@ -1723,7 +2000,19 @@ async function saveCustomer(id){
     for(const [k] of CATS){const np=price(k);if(np==null||!chk(k))continue;const cur=c0?currentPlanPrice(c0,k):null;
       if(cur==null||+cur!==+np)hist.push({customer_id:cid,category:k,price:np,effective_date:today()});}
     if(hist.length){const {error}=await sb.from('plan_prices').insert(hist);if(error)toast('料金履歴の保存に失敗: '+error.message);}}
-  await loadAll();closeModal();toast(id?'更新しました':'登録しました');render();
+  /* 紹介者を初めて選んだときは、お二人に紹介割の割引券を発行 */
+  const refEl=document.getElementById('f_ref'),refId=refEl&&!refEl.disabled?refEl.value:'';
+  let issued=false;
+  if(cid&&refId&&store.migr12){
+    const ref=custById(refId),amt=priceCfg().referral;
+    const r1=await dbWrite('customers','update',{referred_by:refId},cid);
+    if(!r1.error){
+      await dbWrite('coupons','insert',{customer_id:cid,kind:'referral',amount:amt,note:`${ref?ref.name:''}さんからのご紹介`});
+      await dbWrite('coupons','insert',{customer_id:refId,kind:'referral',amount:amt,note:`${person.name}さんをご紹介`});
+      issued=true;
+    }
+  }
+  await loadAll();closeModal();toast(issued?`登録しました。紹介割（${yen(priceCfg().referral)}）をお二人に発行しました`:(id?'更新しました':'登録しました'));render();
 }
 function openWithdraw(id){
   if(needMigr6())return;
@@ -1785,7 +2074,7 @@ function drawChart(cid,metric){
 /* ================= 設定 ================= */
 function viewSettings(){
   const t=ui.setTab;
-  const tabs=[['studio','店舗情報'],['booking','予約受付'],['news','お知らせ'],['products','商品'],['coupon','割引券'],['app','お客様アプリ'],['account','アカウント']];
+  const tabs=[['studio','店舗情報'],['news','お知らせ'],['products','商品'],['coupon','料金・割引'],['app','お客様アプリ'],['account','アカウント']];
   return `${pageHead('SETTINGS','設定','')}
   <div class="seg" style="margin-bottom:22px">${tabs.map(([k,l])=>`<button class="${t===k?'on':''}" onclick="ui.setTab='${k}';render()">${l}</button>`).join('')}</div>
   ${migrBanner()}
@@ -1843,23 +2132,31 @@ async function saveProduct(id){
 }
 async function delProduct(id){const p=productById(id);if(!await ask(`「${p.name}」を削除しますか？（過去の会計はそのまま残ります）`))return;
   const {error}=await sb.from('products').delete().eq('id',id);if(error){toast('エラー: '+error.message);return;}await loadAll();closeModal();render();toast('削除しました');}
-function setCoupon(){const {every,amount}=couponCfg();
+function setCoupon(){const {every,amount}=couponCfg(),pc=priceCfg();
   const holders=actives().map(c=>({c,cs:couponState(c.id)})).filter(r=>r.cs.avail||r.cs.stamps);
-  return `<section class="card"><div class="ch"><h2>プロテイン割引券のルール</h2></div>
-    <div class="form" style="max-width:520px">
-      <div class="fld"><label>プロテインを</label><div class="unit"><input id="cp_every" type="number" min="1" value="${every}"><span class="u">個ごと</span></div></div>
-      <div class="fld"><label>割引券の金額</label><div class="unit"><input id="cp_amount" type="number" min="0" step="100" value="${amount}"><span class="u">円</span></div></div></div>
-    <div class="note" style="margin-top:16px">会計でプロテインを登録すると、自動でスタンプがたまります。<b>${every}個</b>たまるごとに <b>${yen(amount)}</b> の割引券が1枚発行され、会計のときに使えます。使ったあとも、スタンプはそのままたまり続けます。会計を取り消すと、その分のスタンプと割引券も元に戻ります。</div>
+  return `<section class="card"><div class="ch"><h2>料金</h2></div>
+    <div class="form" style="max-width:620px">
+      <div class="fld"><label>痩身の1回料金（全員一律）</label><div class="unit"><input id="cp_slim" type="number" min="0" step="100" value="${pc.slim}"><span class="u">円</span></div></div>
+      <div class="fld"><label>回数券の回数（1セット）</label><div class="unit"><input id="cp_size" type="number" min="1" value="${pc.size}"><span class="u">回</span></div></div></div>
+    <div class="note" style="margin-top:16px">加圧の1回料金は、お客様ごとの契約料金です（顧客の編集で設定）。加圧と痩身の回数券は共用できます。痩身を加圧の回数券で受けるときは、回数券を1回使ったうえで、<b>痩身の料金と加圧の料金の差額</b>をいただきます（例：痩身 ${yen(pc.slim)}・加圧 ${yen(5000)} なら差額 ${yen(Math.max(0,pc.slim-5000))}）。バストは毎回、会計で金額を入力します。</div></section>
+  <section class="card"><div class="ch"><h2>割引</h2></div>
+    <div class="form" style="max-width:620px">
+      <div class="fld"><label>商品（プロテイン・美容）を</label><div class="unit"><input id="cp_every" type="number" min="1" value="${every}"><span class="u">個ごと</span></div></div>
+      <div class="fld"><label>商品スタンプ券の金額</label><div class="unit"><input id="cp_amount" type="number" min="0" step="100" value="${amount}"><span class="u">円</span></div></div>
+      <div class="fld"><label>紹介割（紹介した人・された人の両方）</label><div class="unit"><input id="cp_ref" type="number" min="0" step="100" value="${pc.referral}"><span class="u">円</span></div></div>
+      <div class="fld"><label>誕生日割（誕生月に1回）</label><div class="unit"><input id="cp_bday" type="number" min="0" step="100" value="${pc.birthday}"><span class="u">円</span></div></div></div>
+    <div class="note" style="margin-top:16px">商品スタンプ：プロテインと美容の商品を合わせて <b>${every}個</b> 買うごとに <b>${yen(amount)}</b> の割引券が1枚たまります。紹介割：顧客の編集で「紹介者」を選ぶと、お二人に割引券が発行されます。誕生日割：誕生月の会計で使えます（年1回）。会計を取り消すと、使った割引券も元に戻ります。</div>
     <div style="margin-top:18px"><button class="btn primary" onclick="saveCoupon()">保存する</button></div></section>
-  <section class="card"><div class="ch"><h2>スタンプ・割引券の状況<span>${holders.length}名</span></h2></div>
+  <section class="card"><div class="ch"><h2>商品スタンプの状況<span>${holders.length}名</span></h2></div>
     ${holders.length?`<div class="tw"><table class="tbl"><thead><tr><th>お客様</th><th>スタンプ</th><th class="r">使える割引券</th></tr></thead><tbody>
       ${holders.sort((a,b)=>b.cs.avail-a.cs.avail||b.cs.stamps-a.cs.stamps).map(({c,cs})=>`<tr class="click" onclick="openCustomer('${c.id}','protein')"><td class="b">${esc(c.name)}</td><td>${stampsHtml(cs)}</td><td class="r b">${cs.avail?cs.avail+'枚':'—'}</td></tr>`).join('')}
     </tbody></table></div>`:'<div class="empty">まだスタンプのある方はいません</div>'}</section>`;}
 async function saveCoupon(){
   if(needMigr6())return;
-  const every=parseInt(document.getElementById('cp_every').value),amount=parseInt(document.getElementById('cp_amount').value);
-  if(!(every>=1)||!(amount>=0)){toast('数字を入力してください');return;}
-  const {error}=await dbWrite('studio_settings','update',{coupon_every:every,coupon_amount:amount,updated_at:new Date().toISOString()},1);
+  const n=id=>parseInt(document.getElementById(id).value);
+  const row={coupon_every:n('cp_every'),coupon_amount:n('cp_amount'),slimming_price:n('cp_slim'),set_size:n('cp_size'),referral_amount:n('cp_ref'),birthday_amount:n('cp_bday'),updated_at:new Date().toISOString()};
+  if(!(row.coupon_every>=1)||!(row.set_size>=1)||[row.coupon_amount,row.slimming_price,row.referral_amount,row.birthday_amount].some(v=>!(v>=0))){toast('数字を入力してください');return;}
+  const {error}=await dbWrite('studio_settings','update',row,1);
   if(error){toast('エラー: '+error.message);return;}await loadAll();render();toast('保存しました');
 }
 /* ---- スタジオからのお知らせ（お客様アプリのホームに表示） ---- */
@@ -2068,6 +2365,22 @@ function animateCounts(){
 }
 let _rz;window.addEventListener('resize',()=>{clearTimeout(_rz);_rz=setTimeout(()=>{if(ui.view==='sales'&&!ui.cust)drawSales();if(ui.cust&&ui.custTab==='record')drawChart(ui.cust,ui.metric);},150);});
 boot();
+/* パスワード欄の「表示／非表示」ボタン（あとから出る入力欄にも自動で付く） */
+const EYE_ON='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF='<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.9 8.4 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+function pwEye(inp){
+  inp.dataset.eye=1;const w=document.createElement('span');w.className='pwbox';inp.parentNode.insertBefore(w,inp);w.appendChild(inp);
+  const b=document.createElement('button');b.type='button';b.className='pweye';b.innerHTML=EYE_ON;
+  b.setAttribute('aria-label','パスワードを表示');b.setAttribute('aria-pressed','false');
+  b.onclick=()=>{const on=inp.type==='password';inp.type=on?'text':'password';b.innerHTML=on?EYE_OFF:EYE_ON;
+    b.setAttribute('aria-label',on?'パスワードを隠す':'パスワードを表示');b.setAttribute('aria-pressed',String(on));inp.focus();};
+  w.appendChild(b);
+}
+function pwEyes(){document.querySelectorAll('input[type=password]:not([data-eye])').forEach(pwEye);}
+/* 画面を離れたら必ず隠す */
+function pwHideAll(){document.querySelectorAll('input[data-eye]').forEach(i=>{if(i.type==='text'){i.type='password';const b=i.nextElementSibling;if(b){b.innerHTML=EYE_ON;b.setAttribute('aria-pressed','false');b.setAttribute('aria-label','パスワードを表示');}}});}
+new MutationObserver(pwEyes).observe(document.body,{childList:true,subtree:true});pwEyes();
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pwHideAll();});
 </script>
 </body>
 </html>

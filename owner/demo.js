@@ -9,20 +9,21 @@
   const pick=a=>a[Math.floor(rnd()*a.length)];
   let seq=1;const uid=()=>'demo-'+(seq++);
 
-  const db={profiles:[{id:'demo-owner',role:'owner'}],customers:[],measurements:[],sessions:[],payments:[],proteins:[],reservations:[],products:[],plan_prices:[],
+  const db={profiles:[{id:'demo-owner',role:'owner'}],customers:[],measurements:[],sessions:[],payments:[],proteins:[],reservations:[],products:[],plan_prices:[],ticket_sets:[],ticket_uses:[],ticket_expiry_log:[],coupons:[],
     announcements:[{id:'demo-a1',title:'年末年始のお休みのお知らせ',body:'12月29日〜1月3日はお休みをいただきます。',published:true,pinned:true,starts_on:null,ends_on:null,created_at:day(-2)+'T10:00:00'},
       {id:'demo-a2',title:'お友だち紹介キャンペーン',body:'ご紹介でお二人とも次回レッスン1,000円引き。',published:true,pinned:false,starts_on:null,ends_on:day(30),created_at:day(-10)+'T10:00:00'}],
     studio_settings:[{id:1,studio_name:'Noailles',phone:'03-0000-0000',address:'東京都〇〇区〇〇 1-2-3',hours:'10:00〜21:00',holiday:'水曜日',coupon_every:3,coupon_amount:1000,
-      booking_enabled:true,open_time:'10:00',close_time:'21:00',lesson_minutes:50,slot_step:30,closed_days:[3],book_days_ahead:30,book_min_hours:3,cancel_min_hours:24}]};
+      slimming_price:8000,set_size:5,referral_amount:1000,birthday_amount:1500,booking_enabled:false,open_time:'10:00',close_time:'21:00',lesson_minutes:50,slot_step:30,closed_days:[3],book_days_ahead:30,book_min_hours:3,cancel_min_hours:24}]};
   const P1={id:uid(),name:'ソイプロテイン 500g',kind:'protein',price:4800,volume_g:500,serving_g:20,active:true,created_at:day(-500)};
   const P2={id:uid(),name:'ホエイプロテイン 500g',kind:'protein',price:5200,volume_g:500,serving_g:25,active:true,created_at:day(-499)};
   const B1={id:uid(),name:'美容ドリンク',kind:'other',price:3200,active:true,created_at:day(-498)};
-  db.products.push(P1,P2,B1);
+  const B2={id:uid(),name:'プラセンタ サプリ',kind:'other',price:6800,active:true,created_at:day(-497)};
+  db.products.push(P1,P2,B1,B2);
 
   const people=[['佐藤 美咲','さとう みさき',['training']],['高橋 由衣','たかはし ゆい',['slimming']],['中村 彩','なかむら あや',['bust','training']],
     ['伊藤 舞','いとう まい',['training']],['小林 さくら','こばやし さくら',['slimming']],['山本 恵','やまもと めぐみ',['bust']],
     ['渡辺 結衣','わたなべ ゆい',['training','slimming']],['加藤 葵','かとう あおい',['training']],['吉田 真由','よしだ まゆ',['slimming']]];
-  const PRICE={training:12000,slimming:15000,bust:16000};
+  const PRICE={training:5000,slimming:8000,bust:16000};
   people.forEach(([name,kana,cats],i)=>{
     const joined=day(-420+i*25);
     const bd=i===1?`1990-${day(8).slice(5)}`:`19${86+i}-${pad((i*4)%12+1)}-${pad(3+i*3)}`;
@@ -46,10 +47,10 @@
       db.sessions.push({id:uid(),customer_id:c.id,date,category:k,menu:pick(['マットピラティス','骨盤調整','体幹トレーニング','ストレッチ']),duration:50,note:null,homework:o>-8?'寝る前にキャットストレッチを10回':null,created_at:date+'T12:00:00'});
       if(n%3===1){w-=.25+rnd()*.3;f-=.15+rnd()*.2;waist-=.2;
         db.measurements.push({id:uid(),customer_id:c.id,date,weight:+w.toFixed(1),body_fat:+f.toFixed(1),waist:+waist.toFixed(1),hip:null,thigh:null,arm:null,note:null,created_at:date});}
-      const lines=[{kind:k,name:({training:'トレーニング',slimming:'痩身',bust:'バスト'})[k]+'（契約料金）',price:PRICE[k],qty:1,product_id:null}];
-      const buyP=(i%3!==2)&&n%4===0, buyB=n%7===0;
+      const lines=[{kind:k,name:({training:'加圧',slimming:'痩身',bust:'バスト'})[k]+'（契約料金）',price:PRICE[k],qty:1,product_id:null}];
+      const buyP=(i%3!==2)&&n%5===0, buyB=n%11===0;
       if(buyP)lines.push({kind:'protein',name:P1.name,price:P1.price,qty:1,product_id:P1.id});
-      if(buyB)lines.push({kind:'beauty',name:B1.name,price:B1.price,qty:1,product_id:B1.id});
+      if(buyB){const B=n%2?B1:B2;lines.push({kind:'beauty',name:B.name,price:B.price,qty:1,product_id:B.id});}
       const sub=lines.reduce((a,l)=>a+l.price*l.qty,0);
       const pid=uid();
       db.payments.push({id:pid,customer_id:c.id,customer_name:c.name,date,amount:sub,category:k,categories:[...new Set(lines.map(l=>l.kind))],items:lines,
@@ -70,14 +71,38 @@
   const r3={id:uid(),customer_id:C[2].id,date:day(0),time:'18:00',category:'bust',duration:50,status:'booked',checked_in_at:null};
   db.reservations.push(r1,r2,r3);
   db.sessions.push({id:uid(),customer_id:C[0].id,date:day(0),category:'training',menu:'マットピラティス',duration:50,note:'骨盤の動きが良くなってきた',reservation_id:r1.id,created_at:day(0)+'T10:55:00'});
-  db.payments.push({id:uid(),customer_id:C[0].id,customer_name:C[0].name,date:day(0),amount:12000,category:'training',categories:['training'],
-    items:[{kind:'training',name:'トレーニング（契約料金）',price:12000,qty:1,product_id:null}],subtotal:12000,adjust_amount:0,coupons_used:0,coupon_discount:0,method:'card',reservation_id:r1.id,created_at:day(0)+'T11:00:00'});
+  db.payments.push({id:uid(),customer_id:C[0].id,customer_name:C[0].name,date:day(0),amount:0,category:'training',categories:['training'],
+    items:[{kind:'training',name:'加圧（回数券 3/5回目）',price:0,qty:1,product_id:null,ticket:{op:'use',plan:'training',surcharge:0}}],subtotal:0,adjust_amount:0,coupons_used:0,coupon_discount:0,method:'card',reservation_id:r1.id,created_at:day(0)+'T11:00:00'});
   [[1,3,'11:00','training'],[2,0,'10:00','training'],[2,4,'15:00','slimming'],[4,5,'13:00','bust'],[6,1,'19:00','slimming'],[7,6,'10:30','training']]
     .forEach(([o,ci,t,k])=>db.reservations.push({id:uid(),customer_id:C[ci].id,date:day(o),time:t,category:k,duration:50,status:'booked',checked_in_at:null,source:'owner',seen_at:day(0)}));
   /* お客様アプリから入った予約・キャンセル（未確認） */
   db.reservations.push({id:uid(),customer_id:C[4].id,date:day(3),time:'18:30',category:'slimming',duration:50,status:'booked',source:'customer',seen_at:null,note:'初めての時間帯です',created_at:new Date().toISOString()});
   db.reservations.push({id:uid(),customer_id:C[7].id,date:day(5),time:'11:00',category:'training',duration:50,status:'cancelled',source:'customer',seen_at:null,cancelled_by:'customer',cancelled_at:new Date().toISOString()});
   db.reservations.push({id:uid(),customer_id:null,date:day(1),time:'14:00',duration:120,status:'booked',source:'owner',seen_at:day(0),note:'研修（予約停止）'});
+  /* 回数券：佐藤さん（加圧 残り2）・渡辺さん（加圧券を痩身で使用・差額）・伊藤さん（使い切り）・小林さん（痩身 期限まもなく） */
+  const mkSet=(ci,plan,bought,exp,uses,note)=>{const unit=plan==='slimming'?8000:PRICE.training,pid=uid();
+    db.payments.push({id:pid,customer_id:C[ci].id,customer_name:C[ci].name,date:day(bought),amount:unit*5,category:plan,categories:[plan],
+      items:[{kind:plan,name:`${plan==='slimming'?'痩身':'加圧'} 回数券（5回）`,price:unit*5,qty:1,product_id:null,ticket:{op:'buy',plan}}],
+      subtotal:unit*5,adjust_amount:0,coupons_used:0,coupon_discount:0,method:'card',voided_at:null,created_at:day(bought)+'T12:00:00'});
+    const s={id:uid(),customer_id:C[ci].id,plan,total:5,unit_price:unit,price:unit*5,payment_id:pid,purchased_on:day(bought),expires_on:exp==null?null:day(exp),note:note||null,created_at:day(bought)};
+    db.ticket_sets.push(s);
+    uses.forEach(([o,p])=>db.ticket_uses.push({id:uid(),set_id:s.id,customer_id:C[ci].id,used_on:day(o),plan:p,surcharge:p==='slimming'&&plan!=='slimming'?8000-unit:0,payment_id:null,reservation_id:o===0?r1.id:null,created_at:day(o)}));
+    return s;};
+  const s0=mkSet(0,'training',-21,69,[[-14,'training'],[-7,'training'],[0,'training']]);
+  db.ticket_expiry_log.push({id:uid(),set_id:s0.id,old_date:day(39),new_date:day(69),note:'体調不良のため1か月延長',changed_at:day(-3)+'T15:00:00'});
+  mkSet(6,'training',-30,60,[[-24,'training'],[-17,'slimming']]);
+  mkSet(3,'training',-80,-10,[[-74,'training'],[-67,'training'],[-60,'training'],[-53,'training'],[-46,'training']]);
+  mkSet(4,'slimming',-50,6,[[-44,'slimming'],[-37,'slimming'],[-30,'slimming']]);
+  /* 紹介割：小林さんが高橋さんを紹介 → お二人に1,000円券 */
+  C[1].referred_by=C[4].id;
+  db.coupons.push({id:uid(),customer_id:C[1].id,kind:'referral',amount:1000,issued_on:day(-12),note:`${C[4].name}さんからのご紹介`,created_at:day(-12)},
+    {id:uid(),customer_id:C[4].id,kind:'referral',amount:1000,issued_on:day(-12),note:`${C[1].name}さんをご紹介`,created_at:day(-12)});
+  /* 予約の変更：伊藤さん 明日11:00 → 明後日16:00 */
+  const mvFrom=db.reservations.find(r=>r.customer_id===C[3].id&&r.date===day(1));
+  if(mvFrom){const to={id:uid(),customer_id:C[3].id,date:day(2),time:'16:00',category:'training',categories:['training'],duration:50,status:'booked',checked_in_at:null,source:'owner',seen_at:day(0),moved_from:mvFrom.id};
+    db.reservations.push(to);mvFrom.status='moved';mvFrom.moved_to=to.id;}
+  db.reservations.forEach(r=>{if(!r.categories&&r.category)r.categories=[r.category];});
+  db.sessions.forEach(s=>{if(!s.categories&&s.category)s.categories=[s.category];});
   /* 中村 彩さんはスタンプ3個で割引券あり */
   const c2=C[2];const extra=db.payments.filter(p=>p.customer_id===c2.id).slice(-3);
   extra.forEach(p=>{if(!p.items.some(l=>l.kind==='protein')){p.items.push({kind:'protein',name:P1.name,price:P1.price,qty:1,product_id:P1.id});p.subtotal+=P1.price;p.amount+=P1.price;p.categories=[...new Set(p.items.map(l=>l.kind))];
