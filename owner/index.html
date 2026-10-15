@@ -405,7 +405,7 @@
 /* ================= 接続設定 ================= */
 let SUPABASE_URL  = "https://jedhznwwspoeoztokqad.supabase.co";
 let SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImplZGh6bnd3c3BvZW96dG9rcWFkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwNjMzNTQsImV4cCI6MjA5ODYzOTM1NH0.41y_csW3FKEjXRlsXfBydA4TPXwbJBKrHUlOsQNgoFc";
-const CUSTOMER_APP_URL='https://noailles.netlify.app';
+const CUSTOMER_APP_URL='https://noailles.pages.dev';
 const DEMO=!!window.demoClient;
 
 let sb=null, meUser=null, isAdmin=false;
@@ -572,6 +572,7 @@ async function onAuthed(){
     if(!f.error&&f.data&&f.data.must_change_pw)openForceChange();}
 }
 /* 管理者IDでのログイン（例: admin）→ ログイン用の内部アドレスに置き換える */
+/* ※ 管理者アカウントの内部ログイン用アドレス（サイトのURLではない）。変えるとIDでログインできなくなる */
 const ADMIN_ID_DOMAIN='noailles-studio.netlify.app';
 function loginIdToEmail(v){v=(v||'').trim();if(!v||v.includes('@'))return v;const id=v.toLowerCase()==='adomin'?'admin':v.toLowerCase();return `${id}@${ADMIN_ID_DOMAIN}`;}
 /* 管理者の初回ログイン：パスワード変更が終わるまで閉じられない */

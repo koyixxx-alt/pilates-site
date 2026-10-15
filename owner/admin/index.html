@@ -185,6 +185,7 @@ async function forceChange(){
   toast('パスワードを変更しました');await load();
 }
 /* ID（例: admin）で入力されたら、ログイン用の内部アドレスに置き換える */
+/* ※ 管理者アカウントの内部ログイン用アドレス（サイトのURLではない）。変えるとIDでログインできなくなる */
 const ADMIN_ID_DOMAIN='noailles-studio.netlify.app';
 function loginIdToEmail(v){v=v.trim();if(v.includes('@'))return v;const id=v.toLowerCase()==='adomin'?'admin':v.toLowerCase();return `${id}@${ADMIN_ID_DOMAIN}`;}
 function renderLogin(msg){
