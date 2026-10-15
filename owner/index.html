@@ -355,10 +355,25 @@
 </div>
 
 <!-- ログイン -->
+<!-- はじめての設定：お店のアカウント（ID＋パスワード）を作る。お店のアカウントがまだ無いときだけ表示 -->
+<div id="setup" class="cover hidden">
+  <div class="cover-card">
+    <div class="logo">はじめての設定</div><div class="cap">CREATE ACCOUNT</div>
+    <p class="muted" style="font-size:13px;margin:-8px 0 22px;text-align:center;line-height:1.85">お店のアカウントを作成します。<br>ここで決めた ID とパスワードで、次回からログインします。</p>
+    <div class="field"><label>スタジオ名</label><input id="suName" placeholder="例：Noailles"></div>
+    <div class="field"><label>ID（半角の英字・数字 3〜30文字）</label><input id="suId" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="例：noailles"></div>
+    <div class="field"><label>パスワード（8文字以上）</label><input id="suPw1" type="password" autocomplete="new-password"></div>
+    <div class="field"><label>パスワード（もう一度）</label><input id="suPw2" type="password" autocomplete="new-password" onkeydown="if(event.key==='Enter')doSetup()"></div>
+    <button class="btn-block" id="suBtn" onclick="doSetup()">アカウントを作成して始める</button>
+    <div class="err" id="suErr"></div>
+    <p class="muted" style="font-size:11.5px;margin-top:6px;text-align:center;line-height:1.8">ID とパスワードは忘れないよう控えておいてください。</p>
+  </div>
+</div>
+
 <div id="auth" class="cover hidden">
   <div class="cover-card">
     <div class="logo" id="authLogo">Pilates Studio</div><div class="cap">OWNER LOGIN</div>
-    <div class="field"><label>メールアドレス</label><input id="auEmail" type="text" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
+    <div class="field"><label>ID</label><input id="auEmail" type="text" autocomplete="username" autocapitalize="off" spellcheck="false"></div>
     <div class="field"><label>パスワード</label><input id="auPass" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAuth()"></div>
     <label class="check"><input type="checkbox" id="auRemember" checked> この端末で次回から自動ログイン</label>
     <button class="btn-block" id="auBtn" onclick="doAuth()">ログイン</button>
@@ -534,8 +549,33 @@ async function bioToggle(){
   render();
 }
 
-function show(id){['boot','config','auth','lock'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));
+function show(id){
+  /* ログイン画面を出すとき、お店のアカウントがまだ無ければ「はじめての設定」を出す */
+  if(id==='auth'&&sb&&!DEMO&&!window._setupChecked){window._setupChecked=true;
+    sb.rpc('owner_setup_needed').then(r=>{if(!r.error&&r.data===true&&!document.getElementById('auth').classList.contains('hidden'))show('setup');}).catch(()=>{});}
+  ['boot','config','auth','lock','setup'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));
   document.getElementById('app').style.display=id==='app'?'block':'none';}
+async function doSetup(){
+  const g=i=>document.getElementById(i).value,err=document.getElementById('suErr');err.textContent='';
+  const id=g('suId').trim().toLowerCase(),p1=g('suPw1'),p2=g('suPw2'),name=g('suName').trim();
+  if(!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(id)){err.textContent='IDは半角の英字・数字で3〜30文字にしてください（記号は . _ - のみ）';return;}
+  if(p1.length<8){err.textContent='パスワードは8文字以上にしてください';return;}
+  if(p1!==p2){err.textContent='確認用のパスワードが一致しません';return;}
+  const btn=document.getElementById('suBtn');btn.disabled=true;btn.textContent='作成中…';
+  try{
+    const r=await sb.rpc('create_owner_account',{p_login_id:id,p_password:p1});
+    if(r.error)throw r.error;
+    const email=loginIdToEmail(id);
+    const {error}=await sb.auth.signInWithPassword({email,password:p1});
+    if(error)throw error;
+    saveCreds(email,p1);
+    if(name){try{localStorage.setItem('studio_name',name);}catch(e){}}
+    await onAuthed();
+    if(name&&store.migr6){await dbWrite('studio_settings','update',{studio_name:name,updated_at:new Date().toISOString()},1);await loadAll();applyStudio();render();}
+    toast('お店のアカウントを作成しました');
+  }catch(e){err.textContent=e.message||'作成できませんでした';}
+  finally{btn.disabled=false;btn.textContent='アカウントを作成して始める';}
+}
 async function doAuth(){
   const email=loginIdToEmail(document.getElementById('auEmail').value),pass=document.getElementById('auPass').value;
   const errEl=document.getElementById('auErr'),btn=document.getElementById('auBtn');errEl.textContent='';
@@ -550,7 +590,7 @@ async function doAuth(){
   finally{btn.disabled=false;btn.textContent='ログイン';}
 }
 function translateAuthErr(m){
-  if(/Invalid login/i.test(m))return 'メールまたはパスワードが違います';
+  if(/Invalid login/i.test(m))return 'IDまたはパスワードが違います';
   if(/Email not confirmed/i.test(m))return 'メール確認が完了していません。受信メールのリンクを承認してください';
   if(/fetch/i.test(m))return '接続できませんでした。通信状態を確認してください';
   return m;
@@ -562,7 +602,7 @@ async function onAuthed(){
   try{const r=await sb.rpc('am_i_admin');if(!r.error)isAdmin=!!r.data;}catch(e){}
   if(!ok){const {data:prof}=await sb.from('profiles').select('role').eq('id',user.id).maybeSingle();ok=!!prof&&prof.role==='owner';}
   if(!ok){show('auth');document.getElementById('auErr').textContent='このアプリはお店（オーナー）専用です。お客様は「お客様アプリ」をご利用ください。';await sb.auth.signOut();return;}
-  document.getElementById('whoEmail').textContent=user.email;
+  document.getElementById('whoEmail').textContent=loginLabel(user.email);
   document.getElementById('demoBadge').innerHTML=DEMO?'<span class="demo-badge">デモ表示</span>':'';
   show('app');
   await loadAll();applyStudio();
@@ -575,6 +615,9 @@ async function onAuthed(){
 /* ※ 管理者アカウントの内部ログイン用アドレス（サイトのURLではない）。変えるとIDでログインできなくなる */
 const ADMIN_ID_DOMAIN='noailles-studio.netlify.app';
 function loginIdToEmail(v){v=(v||'').trim();if(!v||v.includes('@'))return v;const id=v.toLowerCase()==='adomin'?'admin':v.toLowerCase();return `${id}@${ADMIN_ID_DOMAIN}`;}
+/* 画面に出すときは ID だけ（内部アドレスの @ 以降は見せない） */
+function isIdLogin(email){return !!email&&String(email).toLowerCase().endsWith('@'+ADMIN_ID_DOMAIN);}
+function loginLabel(email){return isIdLogin(email)?String(email).split('@')[0]:(email||'');}
 /* 管理者の初回ログイン：パスワード変更が終わるまで閉じられない */
 function openForceChange(){
   window._forcePw=true;
@@ -1819,10 +1862,10 @@ function setApp(){
 function copyText(s){(navigator.clipboard?navigator.clipboard.writeText(s):Promise.reject()).then(()=>toast('コピーしました')).catch(()=>prompt('コピーしてください',s));}
 function setAccount(){
   return `<section class="card"><div class="ch"><h2>アカウント${isAdmin?'<span>管理者（開発元）</span>':''}</h2></div>
-    <div class="meta" style="margin-top:0"><div><div class="l">ログイン中のメール</div><div class="d">${esc(meUser?.email||'')}</div></div>
+    <div class="meta" style="margin-top:0"><div><div class="l">${isIdLogin(meUser?.email)?'ログインID':'ログイン中のメール'}</div><div class="d">${esc(loginLabel(meUser?.email))}</div></div>
       <div><div class="l">権限</div><div class="d">${isAdmin?'管理者（開発元）':'オーナー'}</div></div></div>
-    <div class="actions" style="margin-top:18px"><button class="btn" onclick="openEmailForm()">メールアドレスを変更</button><button class="btn" onclick="openPasswordForm()">パスワードを変更</button><button class="btn" onclick="signOut()">ログアウト</button></div>
-    <div class="note" style="margin-top:16px">${isAdmin?'この端末は<b>管理者（開発元）</b>としてログインしています。お店がメール・パスワードを変更しても、管理者のアクセスは維持されます。':'お店用のメール・パスワードに変更できます。変更してもデータはそのまま引き継がれます。'}</div>
+    <div class="actions" style="margin-top:18px">${isIdLogin(meUser?.email)?'':`<button class="btn" onclick="openEmailForm()">メールアドレスを変更</button>`}<button class="btn" onclick="openPasswordForm()">パスワードを変更</button><button class="btn" onclick="signOut()">ログアウト</button></div>
+    <div class="note" style="margin-top:16px">${isAdmin?'この端末は<b>管理者（開発元）</b>としてログインしています。お店がパスワードを変更しても、管理者のアクセスは維持されます。':'パスワードはいつでも変更できます。変更してもデータはそのまま引き継がれます。パスワードを忘れたときは、開発元に再設定を依頼してください。'}</div>
     <div style="margin-top:14px" class="actions">${isAdmin?`<a class="btn sm" href="admin/">運営管理画面を開く</a>`:''}<a class="link" onclick="resetConn()">接続先（Supabase）を変更</a></div></section>
   <section class="card"><div class="ch"><h2>Face ID・指紋でログイン</h2></div><div id="bioBox" class="muted" style="font-size:13px">確認中…</div></section>`;}
 async function fillBio(){

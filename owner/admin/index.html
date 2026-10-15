@@ -288,9 +288,9 @@ function salesCsv(){
 }
 function viewAccounts(){
   if(data.accounts===null)return `<div class="banner">この画面を使うには、データベースの更新（<b>supabase-migration-7.sql</b>）が必要です。</div>`;
-  return `<section class="card"><div class="ch"><h2>オーナーのログインアカウント<span>${data.accounts.length}件</span></h2></div>
-    ${data.accounts.length?`<div class="tw"><table class="tbl"><thead><tr><th>メールアドレス</th><th>作成日</th><th>最終ログイン</th><th></th></tr></thead><tbody>
-      ${data.accounts.map(a=>`<tr><td class="b">${esc(a.email)}</td><td class="nw">${fmtYmd(a.created_at)}</td><td class="nw">${fmtDt(a.last_sign_in_at)}</td>
+  return `<section class="card"><div class="ch"><h2>お店のログインアカウント<span>${data.accounts.length}件</span></h2><button class="btn sm primary" onclick="openCreateOwner()">＋ お店のアカウントを作成</button></div>
+    ${data.accounts.length?`<div class="tw"><table class="tbl"><thead><tr><th>ログインID</th><th>作成日</th><th>最終ログイン</th><th></th></tr></thead><tbody>
+      ${data.accounts.map(a=>`<tr><td class="b">${esc(loginLabel(a.email))}${isIdLogin(a.email)?'':' <span class="tag gray">メール</span>'}</td><td class="nw">${fmtYmd(a.created_at)}</td><td class="nw">${fmtDt(a.last_sign_in_at)}</td>
         <td class="r"><button class="btn sm" onclick="openResetPw('${a.user_id}')">パスワードを再設定</button></td></tr>`).join('')}
     </tbody></table></div>`:'<div class="empty">オーナーのアカウントがありません</div>'}
     <div class="note" style="margin-top:14px">お店の方がパスワードを忘れたときは、ここから新しいパスワードを設定して伝えてください。お客様のアカウントには使えません。</div></section>
@@ -307,26 +307,50 @@ function genPw(){const c='abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ2345678
 function openResetPw(uid){
   const a=data.accounts.find(x=>x.user_id===uid);
   modal(`<div class="modal-h"><h3>パスワードを再設定</h3><button class="x" onclick="closeModal()">×</button></div>
-    <div class="modal-b"><div class="note" style="margin-bottom:14px">${esc(a.email)} のパスワードを、新しいものに変更します。今のパスワードは使えなくなります。</div>
-      <div class="fld"><label>新しいパスワード（6文字以上）</label><div style="display:flex;gap:8px"><input id="np" value="${genPw()}"><button class="btn sm" onclick="document.getElementById('np').value=genPw()">作り直す</button></div></div>
+    <div class="modal-b"><div class="note" style="margin-bottom:14px">${esc(loginLabel(a.email))} のパスワードを、新しいものに変更します。今のパスワードは使えなくなります。</div>
+      <div class="fld"><label>新しいパスワード（8文字以上）</label><div style="display:flex;gap:8px"><input id="np" value="${genPw()}"><button class="btn sm" onclick="document.getElementById('np').value=genPw()">作り直す</button></div></div>
       <label class="check" style="margin-top:14px"><input type="checkbox" id="npMemo" checked> ログイン情報のメモにも保存する</label></div>
     <div class="modal-f"><button class="btn" onclick="closeModal()">キャンセル</button><button class="btn primary" id="npBtn" onclick="resetPw('${uid}')">変更する</button></div>`);
 }
 async function resetPw(uid){
   const a=data.accounts.find(x=>x.user_id===uid),pw=document.getElementById('np').value.trim();
-  if(pw.length<6){toast('6文字以上にしてください');return;}
+  if(pw.length<8){toast('8文字以上にしてください');return;}
   const btn=document.getElementById('npBtn');btn.disabled=true;
   const sb=client(store());
   const {error}=await sb.rpc('admin_set_password',{target:uid,new_password:pw});
   if(error){toast('エラー: '+error.message);btn.disabled=false;return;}
-  if(document.getElementById('npMemo').checked){
-    const ex=data.notes.find(n=>(n.login_email||'').toLowerCase()===a.email.toLowerCase());
-    const row={title:ex?ex.title:'オーナー（'+store().name+'）',login_email:a.email,password_memo:pw,updated_at:new Date().toISOString()};
-    const r=ex?await sb.from('admin_notes').update(row).eq('id',ex.id):await sb.from('admin_notes').insert(row);
-    if(r.error)toast('メモの保存に失敗: '+r.error.message);
-  }
+  if(document.getElementById('npMemo').checked)await saveLoginMemo(loginLabel(a.email),pw,a.email);
   closeModal();await load();toast('パスワードを変更しました');
 }
+/* ログイン情報のメモに保存（同じIDのメモがあれば上書き） */
+async function saveLoginMemo(label,pw,email){
+  const sb=client(store()),keys=[label,email].filter(Boolean).map(s=>s.toLowerCase());
+  const ex=data.notes.find(n=>keys.includes((n.login_email||'').toLowerCase()));
+  const row={title:ex?ex.title:'お店（'+store().name+'）',login_email:label,password_memo:pw,updated_at:new Date().toISOString()};
+  const r=ex?await sb.from('admin_notes').update(row).eq('id',ex.id):await sb.from('admin_notes').insert(row);
+  if(r.error)toast('メモの保存に失敗: '+r.error.message);
+}
+/* お店のアカウントを作る（ID＋パスワード） */
+function openCreateOwner(){
+  modal(`<div class="modal-h"><h3>お店のアカウントを作成</h3><button class="x" onclick="closeModal()">×</button></div>
+    <div class="modal-b"><div class="note" style="margin-bottom:14px">お店の方がログインに使う ID とパスワードを作ります。作成後、お店の方に伝えてください。</div>
+      <div class="fld"><label>ID（半角の英字・数字 3〜30文字）</label><input id="coId" autocapitalize="off" spellcheck="false" placeholder="例：noailles"></div>
+      <div class="fld" style="margin-top:12px"><label>パスワード（8文字以上）</label><div style="display:flex;gap:8px"><input id="coPw" value="${genPw()}"><button class="btn sm" onclick="document.getElementById('coPw').value=genPw()">作り直す</button></div></div>
+      <label class="check" style="margin-top:14px"><input type="checkbox" id="coMemo" checked> ログイン情報のメモにも保存する</label></div>
+    <div class="modal-f"><button class="btn" onclick="closeModal()">キャンセル</button><button class="btn primary" id="coBtn" onclick="createOwner()">作成する</button></div>`);
+}
+async function createOwner(){
+  const id=document.getElementById('coId').value.trim().toLowerCase(),pw=document.getElementById('coPw').value.trim();
+  if(!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(id)){toast('IDは半角の英字・数字で3〜30文字にしてください');return;}
+  if(pw.length<8){toast('パスワードは8文字以上にしてください');return;}
+  const btn=document.getElementById('coBtn');btn.disabled=true;
+  const {error}=await client(store()).rpc('create_owner_account',{p_login_id:id,p_password:pw});
+  if(error){toast(error.message);btn.disabled=false;return;}
+  if(document.getElementById('coMemo').checked)await saveLoginMemo(id,pw);
+  closeModal();await load();toast(`お店のアカウント「${id}」を作成しました`);
+}
+function isIdLogin(email){return !!email&&String(email).toLowerCase().endsWith('@'+ADMIN_ID_DOMAIN);}
+function loginLabel(email){return isIdLogin(email)?String(email).split('@')[0]:(email||'');}
 function openNoteForm(id){
   const n=id?data.notes.find(x=>x.id===id):{};
   modal(`<div class="modal-h"><h3>${id?'メモを編集':'メモを追加'}</h3><button class="x" onclick="closeModal()">×</button></div>
@@ -377,11 +401,13 @@ function delStore(id){if(!confirm('この店舗をリストから外しますか
 /* ---------- デモ表示 ---------- */
 function setupDemo(){
   const db=window.demoDb;
-  db.admin_notes=[{id:'n1',title:'オーナー（Noailles）',login_email:'owner@noailles.example',password_memo:'Pilates2026!',note:'2026/10 にお店のメールへ変更済み',created_at:today(),updated_at:today()}];
+  db.admin_notes=[{id:'n1',title:'お店（Noailles）',login_email:'noailles',password_memo:'Pilates2026!',note:'お店に伝え済み',created_at:today(),updated_at:today()}];
+  const accts=[{user_id:'u1',email:'noailles@'+ADMIN_ID_DOMAIN,created_at:'2026-07-04T05:55:00Z',last_sign_in_at:new Date().toISOString()},{user_id:'u0',email:'old-owner@example.com',created_at:'2026-07-01T05:55:00Z',last_sign_in_at:'2026-09-30T10:00:00Z'}];
   const base=window.demoClient.rpc;
   window.demoClient.rpc=async(n,args)=>{
     if(n==='am_i_admin')return {data:true,error:null};
-    if(n==='admin_owner_accounts')return {data:[{user_id:'u1',email:'owner@noailles.example',created_at:'2026-07-04T05:55:00Z',last_sign_in_at:new Date().toISOString()}],error:null};
+    if(n==='admin_owner_accounts')return {data:accts.slice(),error:null};
+    if(n==='create_owner_account'){accts.push({user_id:'u'+(accts.length+1),email:args.p_login_id+'@'+ADMIN_ID_DOMAIN,created_at:new Date().toISOString(),last_sign_in_at:null});return {data:null,error:null};}
     if(n==='admin_set_password')return {data:null,error:null};
     return base(n,args);
   };
